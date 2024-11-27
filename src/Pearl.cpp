@@ -5,6 +5,6 @@ public:
 	Pearl() {
 		this->model_path = "assets/Pearl/sphere.obj";
 		this->textures = { "textures/Pearl/pearl_texture.png" };
-		this->model_mtl = { "" };
+		this->model_mtl = { };
 	};
 };

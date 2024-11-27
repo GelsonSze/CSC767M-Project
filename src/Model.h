@@ -43,9 +43,9 @@ public:
 		bool ret = tinyobj::LoadObj(shapes, model_c_str);
 
 		if (ret)
-			cout << "OBJ File: " << model_c_str << "successfully loaded\n";
+			cout << "OBJ File: " << model_c_str << " successfully loaded\n";
 		else
-			cout << "OBJ File: " << model_c_str << "cannot be found or is not a valid OBJ File";
+			cout << "OBJ File: " << model_c_str << " cannot be found or is not a valid OBJ File";
 
 		Shader simpleShader("src/shader.vert", "src/shader.frag");
 		g_SimpleShader = simpleShader.program;
@@ -82,7 +82,6 @@ public:
 	};
 
 	virtual void draw() {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// activate shader
 		glUseProgram(g_SimpleShader);
 

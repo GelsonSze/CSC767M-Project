@@ -24,7 +24,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "tiny_obj_loader.h" 
 #include "stb_image.h"
+
+#include "Clam.cpp"
+#include "Coral.cpp"
+#include "Fish.cpp"
+#include "Jellyfish.cpp"
 #include "Pearl.cpp"
+#include "Pillar.cpp"
+#include "Seaweed.cpp"
+#include "Stalagmite.cpp"
+#include "Trident.cpp"
+#include "Turtle.cpp"
 
 using namespace std;
 using namespace glm;
@@ -47,14 +57,23 @@ float cameraPosx = 0.0f, cameraPosy = 0.3f, cameraPosz = 1.1f;
 vec3 cameraPos = vec3(cameraPosx, cameraPosy, cameraPosz);
 vec3 cameraCenter = vec3(x, y, z);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+Clam clam = Clam();
+Coral coral = Coral();
+Fish fish = Fish();
+Jellyfish jellyfish = Jellyfish();
 Pearl pearl = Pearl();
+Pillar pillar = Pillar();
+Seaweed seaweed = Seaweed();
+Stalagmite stalagmite = Stalagmite();
+Trident trident = Trident();
+Turtle turtle = Turtle();
 
 // ------------------------------------------------------------------------------------------
 // This function manually creates a square geometry (defined in the array vertices[])
 // ------------------------------------------------------------------------------------------
 void load()
 {
-	pearl.load();
+	turtle.load();
 }
 
 // ------------------------------------------------------------------------------------------
@@ -62,7 +81,8 @@ void load()
 // ------------------------------------------------------------------------------------------
 void draw()
 {	
-	pearl.draw();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	turtle.draw();
 }
 
 // ------------------------------------------------------------------------------------------

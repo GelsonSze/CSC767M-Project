@@ -156,10 +156,19 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Clam.cpp" />
+    <ClCompile Include="..\src\Coral.cpp" />
+    <ClCompile Include="..\src\Fish.cpp" />
     <ClCompile Include="..\src\glfunctions.cpp" />
+    <ClCompile Include="..\src\Jellyfish.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\Pillar.cpp" />
+    <ClCompile Include="..\src\Seaweed.cpp" />
     <ClCompile Include="..\src\Shader.cpp" />
     <ClCompile Include="..\src\Pearl.cpp" />
+    <ClCompile Include="..\src\Stalagmite.cpp" />
+    <ClCompile Include="..\src\Trident.cpp" />
+    <ClCompile Include="..\src\Turtle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shader.frag" />
