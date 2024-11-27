@@ -21,8 +21,8 @@
 #include "Shader.h"			// class to compile shaders
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
 #include "tiny_obj_loader.h" 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include "Clam.cpp"
@@ -36,6 +36,8 @@
 #include "Trident.cpp"
 #include "Turtle.cpp"
 
+#include "globals.h"
+
 using namespace std;
 using namespace glm;
 
@@ -44,19 +46,29 @@ int g_ViewportWidth = 512; int g_ViewportHeight = 512; // Default window size, i
 double mouse_x, mouse_y;	//variables storing mouse position
 const vec3 g_backgroundColor(0.2f, 0.2f, 0.2f); // background colour - a GLM 3-component vector
 
-GLuint g_simpleShader = 0;	//shader identifier
-GLuint g_Vao = 0;			//vao
-GLuint g_NumTriangles = 0;	 //  Number of triangles we are painting.
-GLuint earth_texture_id;
-GLuint texture_id_normal, texture_id_spec, texture_id_night;
-vec3 g_light_dir(10.0, 10.0, 10.0);
-float x = 0.0f, y = 0.0f, z = 0.0f;
-float s = 0.2, r = 0.0;
-float radius = 1.5f;
+//vec3 g_light_dir(10.0, 10.0, 10.0);
+//float x = 0.0f, y = 0.0f, z = 0.0f;
+//float s = 0.2, r = 0.0;
+//float radius = 1.5f;
+
+//global variables for global header
 float cameraPosx = 0.0f, cameraPosy = 0.3f, cameraPosz = 1.1f;
 vec3 cameraPos = vec3(cameraPosx, cameraPosy, cameraPosz);
-vec3 cameraCenter = vec3(x, y, z);
+vec3 cameraCenter = vec3(0.0f, 0.0f, 0.0f);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+mat4 view_matrix = glm::lookAt(
+	cameraPos,
+	cameraCenter,
+	cameraUp
+);
+mat4 projection_matrix = perspective(
+	90.0f, // fov
+	1.0f, // aspect ratio
+	0.1f, // near plane (distance from camera)
+	50.0f // far plane (distance from camera)
+);
+
+//objects
 Clam clam = Clam();
 Coral coral = Coral();
 Fish fish = Fish();
@@ -73,7 +85,7 @@ Turtle turtle = Turtle();
 // ------------------------------------------------------------------------------------------
 void load()
 {
-	turtle.load();
+	stalagmite.load();
 }
 
 // ------------------------------------------------------------------------------------------
@@ -82,7 +94,7 @@ void load()
 void draw()
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	turtle.draw();
+	stalagmite.draw();
 }
 
 // ------------------------------------------------------------------------------------------
@@ -95,14 +107,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	//reload
 	if (key == GLFW_KEY_R && action == GLFW_PRESS)
 		load();
-	if (key == GLFW_KEY_UP && (action == GLFW_PRESS || GLFW_REPEAT))
-		g_light_dir.y += 1;
-	if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || GLFW_REPEAT))
-		g_light_dir.y -= 1;
-	if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || GLFW_REPEAT))
-		g_light_dir.x -= 1;
-	if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || GLFW_REPEAT))
-		g_light_dir.x += 1;
 }
 
 // ------------------------------------------------------------------------------------------

@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\glfunctions.h" />
+    <ClInclude Include="..\src\globals.h" />
     <ClInclude Include="..\src\Model.h" />
     <ClInclude Include="..\src\Shader.h" />
     <ClInclude Include="..\src\stb_image.h" />

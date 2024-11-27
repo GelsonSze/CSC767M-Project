@@ -18,9 +18,17 @@ out vec3 v_color;
 void main()
 {
 	// position of the vertex
-	gl_Position = vec4( a_vertex , 1.0 );
+	gl_Position = u_projection* u_view * u_model * vec4( a_vertex , 1.0 );
 
 	// pass the colour to the fragment shader
-	// v_color = a_color;
+	v_color = a_color;
+
+	// pass the uv coordinates to the fragment shader
+	v_uv = a_uv;
+
+	mat4 normal_matrix = transpose(inverse(u_model));
+	v_normal = (normal_matrix * vec4(a_normal,1.0) ).xyz;
+
+	v_vertex = (u_model * vec4(a_vertex, 1.0)).xyz;
 }
 
