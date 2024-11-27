@@ -26,13 +26,13 @@ class Model {
 protected:
 	string model_path;
 	vector <string> textures;
+	string model_mtl;
 	GLuint g_SimpleShader = 0;
 	GLuint g_NumTriangles = 0;
 	GLuint g_Vao = 0;
 
 public:
 	Model(){};
-	Model(string model_path, vector<string> textures) : model_path{model_path}, textures{textures} {};
 	virtual ~Model() {
 	};
 	virtual void load() {
