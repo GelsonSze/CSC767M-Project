@@ -34,15 +34,14 @@ public:
 	string model_path;
 	vector <string> textures;
 	string model_mtl;
-	GLuint g_SimpleShader = 0;
 	GLuint g_NumTriangles = 0;
 	GLuint g_Vao = 0;
-	vector <GLuint> texture_ids = { 1,2,3 };
-	vec3 t, r, s;
+	vector <GLuint> texture_ids;
 	vector< tinyobj::shape_t > shapes;
+	vec3 t, r, s;
 
 public:
-	Model(){};
+	Model() { set_modelTransform(); };
 	virtual ~Model() {};
 	virtual void load() {
 
@@ -63,8 +62,10 @@ public:
 			ret = tinyobj::LoadObj(shapes, model_c_str);
 		}
 
-		if (ret)
+		if (ret) {
 			cout << "OBJ File: " << model_c_str << " successfully loaded\n";
+			totalObjs ++;
+		}
 		else
 			cout << "OBJ File: " << model_c_str << " cannot be found or is not a valid OBJ File\n";
 
@@ -74,9 +75,10 @@ public:
 		int width = 0, height = 0, numChannels = 0;
 		unsigned char* pixels;
 		GLuint textureid;
-		GLenum format = GL_RGBA;
+		GLenum format;
 		for (auto tex : this->textures) {
 			cout << "TEX IS " << tex << "\n";
+			totalTextures++;
 
 			stbi_set_flip_vertically_on_load(true);
 			pixels = stbi_load(tex.c_str(), & width, & height, & numChannels, 0);
@@ -112,100 +114,53 @@ public:
 				GL_UNSIGNED_BYTE,		// type of data
 				pixels);
 		}
-
-		////**********************
-		//// CODE TO LOAD TO MEMORY
-		//////**********************
-		//Shader simpleShader("src/shader.vert", "src/shader.frag");
-		//this->g_SimpleShader = simpleShader.program;
-
-		////Create the VAO where we store all geometry (stored in g_Vao)
-		//g_Vao = gl_createAndBindVAO();
-		//std::cout << "vao: " << g_Vao;
-
-		////create vertex buffer for positions, colors, and indices, and bind them to shader
-		//gl_createAndBindAttribute(&(shapes[0].mesh.positions[0]),
-		//	shapes[0].mesh.positions.size() * sizeof(float),
-		//	g_SimpleShader, "a_vertex", 3);
-
-		//gl_createAndBindAttribute(
-		//	&(shapes[0].mesh.texcoords[0]),
-		//	shapes[0].mesh.texcoords.size() * sizeof(GLfloat),
-		//	g_SimpleShader,
-		//	"a_uv", 2);
-
-		//gl_createAndBindAttribute(
-		//	&(shapes[0].mesh.normals[0]),
-		//	shapes[0].mesh.normals.size() * sizeof(float),
-		//	g_SimpleShader,
-		//	"a_normal", 3);
-
-		//gl_createIndexBuffer(&(shapes[0].mesh.indices[0]),
-		//	shapes[0].mesh.indices.size() * sizeof(unsigned int));
-
-		////unbind everything
-		//gl_unbindVAO();
-
-		////store number of triangles (use in draw())
-		//g_NumTriangles = shapes[0].mesh.indices.size() / 3;
+		g_NumTriangles = shapes[0].mesh.indices.size() / 3;
 	};
 
-	virtual void draw() {
-		//glEnable(GL_DEPTH_TEST);
+	virtual void draw(GLuint g_Shader) {
+		gl_bindVAO(g_Vao);
+		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
+		//FOR DEBUG
+		/*cout << "PRINTING IDS\n";
+		for (auto id : texture_ids) {
+			cout << id << " ";
+		}
+		cout << "\n";*/
 
-		//glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK);
-		//// activate shader
-		//glUseProgram(g_SimpleShader);
+		bindTextures(g_Shader);
 
-		//GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
-		//glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+		// light position
+		GLuint light_loc = glGetUniformLocation(g_Shader, "u_light_dir");
+		glUniform3f(light_loc, 10.0f, 10.0f, 10.0f);
 
-		////projection matrix
-		//GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
-		//glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+		GLuint cam_pos_loc = glGetUniformLocation(g_Shader, "u_cam_pos");
+		// this is the camera position, eye/cameraPos <- takes in global variable declared in main from globals.h
+		glUniform3f(cam_pos_loc, cameraPosx, cameraPosy, cameraPosz);
 
-		////bind the textures separately per object class
-		//GLuint u_texture = glGetUniformLocation(g_SimpleShader, "u_texture");
+		GLuint ambient_loc = glGetUniformLocation(g_Shader, "u_ambient");
+		glUniform3f(ambient_loc, 0.1, 0.1, 0.1); // grey shadows
 
-		bindTextures();
+		GLuint diffuse_loc = glGetUniformLocation(g_Shader, "u_diffuse");
+		glUniform3f(diffuse_loc, 1.0, 1.0, 1.0); // white diffuse light
 
-		////bind the geometry
-		//gl_bindVAO(g_Vao);
+		GLuint specular_loc = glGetUniformLocation(g_Shader, "u_specular");
+		glUniform3f(specular_loc, 1.0, 1.0, 1.0); // white specular light
 
-		//// light position
-		//GLuint light_loc = glGetUniformLocation(g_SimpleShader, "u_light_dir");
-		//glUniform3f(light_loc, 10.0f, 10.0f, 10.0f);
+		GLuint shininess_loc = glGetUniformLocation(g_Shader, "u_shininess");
+		glUniform1f(shininess_loc, 20.0f);
 
-		//GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
-		//// this is the camera position, eye/cameraPos <- takes in global variable declared in main from globals.h
-		//glUniform3f(cam_pos_loc, cameraPosx, cameraPosy, cameraPosz);
-
-		//GLuint ambient_loc = glGetUniformLocation(g_SimpleShader, "u_ambient");
-		//glUniform3f(ambient_loc, 0.1, 0.1, 0.1); // grey shadows
-
-		//GLuint diffuse_loc = glGetUniformLocation(g_SimpleShader, "u_diffuse");
-		//glUniform3f(diffuse_loc, 1.0, 1.0, 1.0); // white diffuse light
-
-		//GLuint specular_loc = glGetUniformLocation(g_SimpleShader, "u_specular");
-		//glUniform3f(specular_loc, 1.0, 1.0, 1.0); // white specular light
-
-		//GLuint shininess_loc = glGetUniformLocation(g_SimpleShader, "u_shininess");
-		//glUniform1f(shininess_loc, 20.0f);
-
-		/*GLuint modelLoc = glGetUniformLocation(g_SimpleShader, "u_model");
+		GLuint modelLoc = glGetUniformLocation(g_Shader, "u_model");
 		mat4 model = translate(mat4(1.0f), vec3(t.x, t.y, t.z)) *
 			rotate(mat4(1.0), r.x, vec3(1.0f, 0.0f, 0.0f)) *
 			rotate(mat4(1.0), r.y, vec3(0.0f, 1.0f, 0.0f)) *
 			rotate(mat4(1.0), r.z, vec3(0.0f, 0.0f, 1.0f)) *
 			scale(mat4(1.0f), vec3(s.x, s.y, s.z));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));*/
 
-		//// Draw to screen
-		//glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles, GL_UNSIGNED_INT, 0);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		// Draw to screen
+		glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles, GL_UNSIGNED_INT, 0);
 	}
-
-	virtual void bindTextures() {};
 
 	//xyz values that starts with t is for translate while r is for rotate, s is for scale
 	virtual void set_modelTransform(float tx = 0.0f, float ty = 0.0f, float tz = 0.0f, 
@@ -215,4 +170,6 @@ public:
 		this->r = vec3(rx, ry, rz);
 		this->s = vec3(sx, sy, sz);
 	};
+
+	virtual void bindTextures(GLuint g_Shader) {};
 };

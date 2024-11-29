@@ -6,6 +6,10 @@
 #include <math.h>
 
 using namespace glm;
+using namespace std;
+
+extern int totalObjs;
+extern int totalTextures;
 
 extern float cameraPosx;
 extern float cameraPosy;
