@@ -35,6 +35,7 @@
 #include "Stalagmite.cpp"
 #include "Trident.cpp"
 #include "Turtle.cpp"
+#include "Seafloor.cpp"
 
 #include "globals.h"
 
@@ -59,6 +60,12 @@ float cameraPosx = 0.0f, cameraPosy = 0.3f, cameraPosz = 1.1f;
 vec3 cameraPos = vec3(cameraPosx, cameraPosy, cameraPosz);
 vec3 cameraCenter = vec3(0.0f, 0.0f, 0.0f);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+
+vec3 cameraFront = normalize(cameraPos - cameraCenter);
+vec3 cameraSide = normalize(cross(cameraUp, cameraFront));
+vec3 cameraTop = cross(cameraFront, cameraSide);
+vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
+
 mat4 view_matrix = glm::lookAt(
 	cameraPos,
 	cameraCenter,
@@ -83,10 +90,29 @@ Seaweed seaweed = Seaweed();
 Stalagmite stalagmite = Stalagmite();
 Trident trident = Trident();
 Turtle turtle = Turtle();
+Seafloor seafloor = Seafloor();
 
 //globals
 GLuint g_SimpleShader = 0;
 vector <Model*> models;
+
+// FPS Camera Variables
+bool isDrag = false;
+bool firstMouse = true;
+float lastX = 256.0f;
+float lastY = 256.0f;
+float cam_yaw = -90.0f;
+float cam_pitch = 0.0f;
+
+void updateCameraVectors(float x) {
+	cameraFront = normalize(x * (cameraPos - cameraCenter));
+	cameraSide = normalize(cross(cameraUp, cameraFront));
+	cameraTop = cross(cameraFront, cameraSide);
+
+	//cout << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << endl;
+	//cout << cameraCenter.x << " , " << cameraCenter.y << " , " << cameraCenter.z << endl;
+	//cout << cameraUp.x << " , " << cameraUp.y << " , " << cameraUp.z << endl;
+}
 
 // ------------------------------------------------------------------------------------------
 // This function manually creates a square geometry (defined in the array vertices[])
@@ -184,15 +210,100 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	//reload
 	if (key == GLFW_KEY_R && action == GLFW_PRESS)
 		load();
+
+	// FPS Camera Commands
+	if (key == GLFW_KEY_W && (action == GLFW_PRESS | GLFW_REPEAT)) {
+		std::cout << "Press: W" << endl;
+
+		cameraPos -= (cameraFront / 100.0f);
+		updateCameraVectors(1.0f);
+	}
+
+	if (key == GLFW_KEY_A && (action == GLFW_PRESS | GLFW_REPEAT)) {
+		cout << "Press: A" << endl;
+
+		if (all(equal(cameraFront, cameraUp))) {
+			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
+		}
+
+		cameraPos -= (cameraSide / 100.0f);
+		cameraCenter -= (cameraSide / 100.0f);
+		updateCameraVectors(1.0f);
+	}
+
+	if (key == GLFW_KEY_S && (action == GLFW_PRESS | GLFW_REPEAT)) {
+		cout << "Press: S" << endl;
+
+		cameraPos -= (cameraFront / 100.0f);
+		updateCameraVectors(-1.0f);
+	}
+
+	if (key == GLFW_KEY_D && (action == GLFW_PRESS | GLFW_REPEAT)) {
+		cout << "Press: D" << endl;
+
+		if (all(equal(cameraFront, cameraUp))) {
+			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
+		}
+
+		cameraPos += (cameraSide / 100.0f);
+		cameraCenter += (cameraSide / 100.0f);
+		updateCameraVectors(1.0f);
+	}
 }
 
 // ------------------------------------------------------------------------------------------
 // This function is called every time you click the mouse
 // ------------------------------------------------------------------------------------------
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		isDrag = true;
 		cout << "Left mouse down at " << mouse_x << ", " << mouse_y << endl;
-    }
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+		isDrag = false;
+		cout << "Left mouse up at " << mouse_x << ", " << mouse_y << endl;
+	}
+}
+
+void mouse_callback(GLFWwindow* window, double x, double y) {
+	float xoffset, yoffset;
+	float sensitivity = 0.01f;
+
+	if (isDrag) {
+		if (firstMouse) {
+			lastX = x;
+			lastY = y;
+			firstMouse = false;
+		}
+
+		xoffset = x - lastX;
+		yoffset = lastY - y;
+
+		lastX = x;
+		lastY = y;
+
+		xoffset *= sensitivity;
+		yoffset *= sensitivity;
+
+		cam_yaw += xoffset;
+		cam_pitch += yoffset;
+
+		if (cam_pitch > 89.0f)
+			cam_pitch = 89.0f;
+
+		if (cam_pitch < -89.0f)
+			cam_pitch = -89.0f;
+
+		cameraCenter = normalize(vec3(
+			cos(cam_yaw) * cos(cam_pitch),
+			sin(cam_pitch),
+			sin(cam_yaw) * cos(cam_pitch)
+		));
+
+		cameraDirection = cameraPos;
+		updateCameraVectors(1.0f);
+	}
 }
 
 int main(void)
@@ -213,6 +324,7 @@ int main(void)
 	//input callbacks
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
 
 	glClearColor(g_backgroundColor.x, g_backgroundColor.y, g_backgroundColor.z, 1.0f);

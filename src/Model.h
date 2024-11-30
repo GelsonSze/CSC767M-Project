@@ -51,7 +51,8 @@ public:
 		// CODE TO SET OBJ
 		//**********************
 		const char* model_c_str = this->model_path.c_str();
-		//vector< tinyobj::shape_t > shapes;
+		
+		// For objects with mtl files
 		vector<tinyobj::material_t> mat = {};
 		string err;
 		bool ret = false;
