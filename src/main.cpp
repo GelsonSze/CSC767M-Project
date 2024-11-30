@@ -118,13 +118,25 @@ void updateCameraVectors(float x) {
 	//cout << cameraUp.x << " , " << cameraUp.y << " , " << cameraUp.z << endl;
 }
 
+float flowerX(float t) {
+	return (0.5 * cos(t)) + (0.1 * cos(5 * t) * cos(t));
+}
+
+float flowerY(float t) {
+	return (0.5 * sin(t)) + (0.1 * cos(5 * t) * sin(t));
+}
+
+float flowerZ(float t) {
+	return ((-0.13 - (0.25 * flowerX(t)) + (0.25 * flowerY(t))) / -0.25) - 0.5;
+}
+
 // ------------------------------------------------------------------------------------------
 // This function manually creates a square geometry (defined in the array vertices[])
 // ------------------------------------------------------------------------------------------
 void load()
 {
 	//models.push_back(&clam);
-	models.push_back(&coral);
+	//models.push_back(&coral);
 	//models.push_back(&fish);
 	//models.push_back(&jellyfish);
 	//models.push_back(&pearl);
@@ -135,7 +147,7 @@ void load()
 	//models.push_back(&shrine);
 	//models.push_back(&terrain);
 	//models.push_back(&seafloor);
-	//models.push_back(&turtle);
+	models.push_back(&turtle);
 
 	//**********************
 	// CODE TO LOAD TO MEMORY
@@ -203,17 +215,32 @@ void draw()
 	//bind the geometry
 	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
 	//trident.draw(g_SimpleShader);
-	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 1.0f, 1.0f, 1.0f);
-	//turtle.draw(g_SimpleShader);
+	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
+	 
+	// MOVEMENT 02 - Flower Jellyfish
+	//turtle.set_modelTransform(flowerX(glfwGetTime()), flowerY(glfwGetTime()), flowerZ(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
 
-	coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
-	coral.draw(g_SimpleShader);
+
+	// MOVEMENT 01 - Spiral Turtle
+	turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
+	if (glfwGetTime() > 6 * 3.141529)
+		glfwSetTime(0.0);
+
+
+	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3 TODO
+
+	turtle.draw(g_SimpleShader);
+
+	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
+	//coral.draw(g_SimpleShader);
 
 	//shrine.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
 	//shrine.draw(g_SimpleShader);
 
 	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
 	//terrain.draw(g_SimpleShader);
+	
+	//jellyfish.set_modelTransform(0.0f, 0.0f, 0.f, 0.0f, 0.0f, 0.0f, 0.01f, 0.01f, 0.01f);
 }
 
 // ------------------------------------------------------------------------------------------
