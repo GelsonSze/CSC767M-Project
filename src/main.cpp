@@ -124,7 +124,7 @@ void updateCameraVectors(float x) {
 void load()
 {
 	//models.push_back(&clam);
-	//models.push_back(&coral);
+	models.push_back(&coral);
 	//models.push_back(&fish);
 	//models.push_back(&jellyfish);
 	//models.push_back(&pearl);
@@ -135,7 +135,7 @@ void load()
 	//models.push_back(&shrine);
 	//models.push_back(&terrain);
 	//models.push_back(&seafloor);
-	models.push_back(&turtle);
+	//models.push_back(&turtle);
 
 	//**********************
 	// CODE TO LOAD TO MEMORY
@@ -203,8 +203,17 @@ void draw()
 	//bind the geometry
 	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
 	//trident.draw(g_SimpleShader);
-	turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 1.0f, 1.0f, 1.0f);
-	turtle.draw(g_SimpleShader);
+	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 1.0f, 1.0f, 1.0f);
+	//turtle.draw(g_SimpleShader);
+
+	coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
+	coral.draw(g_SimpleShader);
+
+	//shrine.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
+	//shrine.draw(g_SimpleShader);
+
+	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
+	//terrain.draw(g_SimpleShader);
 }
 
 // ------------------------------------------------------------------------------------------

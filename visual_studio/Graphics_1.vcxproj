@@ -167,7 +167,9 @@
     <ClCompile Include="..\src\Seaweed.cpp" />
     <ClCompile Include="..\src\Shader.cpp" />
     <ClCompile Include="..\src\Pearl.cpp" />
+    <ClCompile Include="..\src\Shrine.cpp" />
     <ClCompile Include="..\src\Stalagmite.cpp" />
+    <ClCompile Include="..\src\Terrain.cpp" />
     <ClCompile Include="..\src\Trident.cpp" />
     <ClCompile Include="..\src\Turtle.cpp" />
   </ItemGroup>

@@ -78,7 +78,7 @@ public:
 		int width = 0, height = 0, numChannels = 0;
 		unsigned char* pixels;
 		GLuint textureid;
-		GLenum format;
+		GLenum format = GL_RGBA;
 		for (auto tex : this->textures) {
 			cout << "TEX IS " << tex << "\n";
 			totalTextures++;
