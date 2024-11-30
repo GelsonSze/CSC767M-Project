@@ -39,9 +39,11 @@ public:
 	vector <GLuint> texture_ids;
 	vector< tinyobj::shape_t > shapes;
 	vec3 t, r, s;
+	vec3 light, ambience, diffuse, specular;
+	float shininess;
 
 public:
-	Model() { set_modelTransform(); };
+	Model() { set_modelTransform(); set_light(); set_ambience(); set_diffuse(); set_specular(); };
 	virtual ~Model() {};
 	virtual void load() {
 
@@ -136,23 +138,23 @@ public:
 
 		// light position
 		GLuint light_loc = glGetUniformLocation(g_Shader, "u_light_dir");
-		glUniform3f(light_loc, 10.0f, 10.0f, 10.0f);
+		glUniform3f(light_loc, light.x, light.y, light.z);
 
 		GLuint cam_pos_loc = glGetUniformLocation(g_Shader, "u_cam_pos");
 		// this is the camera position, eye/cameraPos <- takes in global variable declared in main from globals.h
 		glUniform3f(cam_pos_loc, cameraPosx, cameraPosy, cameraPosz);
 
 		GLuint ambient_loc = glGetUniformLocation(g_Shader, "u_ambient");
-		glUniform3f(ambient_loc, 0.1, 0.1, 0.1); // grey shadows
+		glUniform3f(ambient_loc, ambience.x, ambience.y, ambience.z); // grey shadows
 
 		GLuint diffuse_loc = glGetUniformLocation(g_Shader, "u_diffuse");
-		glUniform3f(diffuse_loc, 1.0, 1.0, 1.0); // white diffuse light
+		glUniform3f(diffuse_loc, diffuse.x, diffuse.y, diffuse.z); // white diffuse light
 
 		GLuint specular_loc = glGetUniformLocation(g_Shader, "u_specular");
-		glUniform3f(specular_loc, 1.0, 1.0, 1.0); // white specular light
+		glUniform3f(specular_loc, specular.x, specular.y, specular.z); // white specular light
 
 		GLuint shininess_loc = glGetUniformLocation(g_Shader, "u_shininess");
-		glUniform1f(shininess_loc, 20.0f);
+		glUniform1f(shininess_loc, shininess);
 
 		GLuint modelLoc = glGetUniformLocation(g_Shader, "u_model");
 		mat4 model = translate(mat4(1.0f), vec3(t.x, t.y, t.z)) *
@@ -174,6 +176,26 @@ public:
 		this->t = vec3(tx, ty, tz);
 		this->r = vec3(rx, ry, rz);
 		this->s = vec3(sx, sy, sz);
+	};
+
+	virtual void set_light(float x = 10.0f, float y = 10.0f, float z = 10.0f) {
+		this->light = vec3(x, y, z);
+	};
+
+	virtual void set_ambience(float x = 0.1f, float y = 0.1f, float z = 0.1f) {
+		this->ambience = vec3(x, y, z);
+	};
+
+	virtual void set_diffuse(float x = 1.0f, float y = 1.0f, float z = 1.0f) {
+		this->diffuse = vec3(x, y, z);
+	};
+
+	virtual void set_specular(float x = 1.0f, float y = 1.0f, float z = 1.0f) {
+		this->specular = vec3(x, y, z);
+	};
+
+	virtual void set_shininess(float shininess = 20.f) {
+		this->shininess = shininess;
 	};
 
 	virtual void bindTextures(GLuint g_Shader) {};
