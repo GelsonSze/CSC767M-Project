@@ -36,6 +36,8 @@
 #include "Trident.cpp"
 #include "Turtle.cpp"
 #include "Seafloor.cpp"
+#include "Terrain.cpp"
+#include "Shrine.cpp"
 
 #include "globals.h"
 
@@ -91,6 +93,8 @@ Stalagmite stalagmite = Stalagmite();
 Trident trident = Trident();
 Turtle turtle = Turtle();
 Seafloor seafloor = Seafloor();
+Terrain terrain = Terrain();
+Shrine shrine = Shrine();
 
 //globals
 GLuint g_SimpleShader = 0;
@@ -128,6 +132,9 @@ void load()
 	//models.push_back(&seaweed);
 	//models.push_back(&stalagmite);
 	//models.push_back(&trident);
+	//models.push_back(&shrine);
+	//models.push_back(&terrain);
+	//models.push_back(&seafloor);
 	models.push_back(&turtle);
 
 	//**********************
