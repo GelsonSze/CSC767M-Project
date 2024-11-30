@@ -11,10 +11,7 @@ public:
 
 	void bindTextures(GLuint g_Shader) override {
 		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
-
-		// bind the sampler to the texture unit 0
 		glUniform1i(u_texture, 0);
-		// activate texture unit 0 and bin the texture object
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_ids[0]);//index of id is the order of textures declared
 

@@ -11,7 +11,7 @@ uniform vec3 u_color;
 uniform sampler2D u_texture;
 uniform sampler2D u_texture_normal;
 uniform sampler2D u_texture_spec;
-uniform sampler2D u_texture_night;
+uniform sampler2D u_texture_diffuse;
 
 uniform vec3 u_light_dir;
 uniform vec3 u_cam_pos;
@@ -64,7 +64,7 @@ void main(void)
 	N = mix(N_orig, N, 2.0f);
 
 	vec3 texture_spec = texture(u_texture_spec, v_uv).xyz;
-	vec3 texture_night = texture(u_texture_night, v_uv).xyz;
+	vec3 texture_diffuse = texture(u_texture_diffuse, v_uv).xyz;
 
 
 	//Phong Diffuse
@@ -89,11 +89,8 @@ void main(void)
 	vec3 ambient_color = texture_color * u_ambient;
 
 	//vec3 final_color = diffuse_color + spec_color + ambient_color; // phong shading equation
-	vec3 final_color = ambient_color + diffuse_color + spec_color * texture_spec;
+	vec3 final_color = ambient_color + diffuse_color * texture_diffuse + spec_color * texture_spec;
 
 	//fragColor = vec4(texture_color.xyz, 1.0);
 	fragColor = vec4(final_color, 1.0);
-
-	if (NdotL < 0.001)
-		final_color = texture_night;
 }

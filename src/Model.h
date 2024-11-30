@@ -89,7 +89,11 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			
 			if (pixels) {
-				if (numChannels == 2) {
+				cout << "Num channels: " << numChannels << "\n";
+				if (numChannels == 1) {
+					format = GL_RED;
+				}
+				else if (numChannels == 2) {
 					format = GL_RG;
 				}
 				else if (numChannels == 3) {
@@ -99,11 +103,11 @@ public:
 					format = GL_RGBA;
 				}
 				else {
-					std::cout << "Failed to load Texture " << tex.c_str() << "\n width: " << width << 
+					cout << "Failed to load Texture " << tex.c_str() << "\n width: " << width << 
 						", height: " << height << ", numChannels: " << numChannels;
 				}
 			}
-			//glGenerateMipmap(GL_TEXTURE_2D);
+			cout << "BEFORE GLTEXIMAGE2D" << "\n";
 			glTexImage2D(GL_TEXTURE_2D, // target
 				0,						// level = 0, no mipmap
 				format,					// how the data will be stored (Grayscale, RGB, RGBA)
@@ -113,6 +117,7 @@ public:
 				format,					// format of original data
 				GL_UNSIGNED_BYTE,		// type of data
 				pixels);
+			cout << "AFTER GLTEXIMAGE2D" << "\n";
 		}
 		g_NumTriangles = shapes[0].mesh.indices.size() / 3;
 	};

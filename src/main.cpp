@@ -93,8 +93,16 @@ vector <Model*> models;
 // ------------------------------------------------------------------------------------------
 void load()
 {
-	models.push_back(&clam);
-	models.push_back(&stalagmite);
+	//models.push_back(&clam);
+	//models.push_back(&coral);
+	//models.push_back(&fish);
+	//models.push_back(&jellyfish);
+	//models.push_back(&pearl);
+	//models.push_back(&pillar);
+	//models.push_back(&seaweed);
+	//models.push_back(&stalagmite);
+	//models.push_back(&trident);
+	models.push_back(&turtle);
 
 	//**********************
 	// CODE TO LOAD TO MEMORY
@@ -104,7 +112,9 @@ void load()
 
 	// Create the VAO where we store all geometry (stored in g_Vao)
 	for (auto &model : models) {
+		cout << "BEFORE LOAD" << "\n";
 		model->load();
+		cout << "AFTER LOAD" << "\n";
 		model->g_Vao = gl_createAndBindVAO();
 		std::cout << "vao: " << model->g_Vao << "\n";
 		vector< tinyobj::shape_t > shapes = model->shapes;
@@ -158,10 +168,10 @@ void draw()
 
 
 	//bind the geometry
-	stalagmite.set_modelTransform(0, 0, -1.0f, 0, 0, 0, 0.4f, 0.4f, 0.4f);
-	stalagmite.draw(g_SimpleShader);
-	stalagmite.set_modelTransform(0, 0, 3.0f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
-	clam.draw(g_SimpleShader);
+	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
+	//trident.draw(g_SimpleShader);
+	turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 1.0f, 1.0f, 1.0f);
+	turtle.draw(g_SimpleShader);
 }
 
 // ------------------------------------------------------------------------------------------
