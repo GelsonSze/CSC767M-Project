@@ -143,7 +143,7 @@ void push_back_models() {
 	//models.push_back(&clam);
 	//models.push_back(&coral);
 	//models.push_back(&fish);
-	//models.push_back(&jellyfish);
+	models.push_back(&jellyfish);
 	//models.push_back(&pearl);
 	//models.push_back(&pillar);
 	//models.push_back(&seaweed);
@@ -359,6 +359,17 @@ void draw()
 		glfwSetTime(0.0);
 	turtle.draw(g_SimpleShader, view_matrix, projection_matrix);
 
+	// MOVEMENT 02 - Jellyfish
+	jellyfish.set_modelTransform(flowerX(glfwGetTime()),
+								 flowerY(glfwGetTime()),
+								 flowerZ(glfwGetTime()),
+								 0, 180.0f, 0,
+								 0.3f, 0.3f, 0.3f);
+	jellyfish.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+
+
+	/// EXTRA CODE
 	//drawTest();
 	//cout << "Test" << endl;
 	//GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
@@ -378,12 +389,6 @@ void draw()
 	//turtle.set_modelTransform(flowerX(glfwGetTime()), flowerY(glfwGetTime()), flowerZ(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
 
 
-	// MOVEMENT 01 - Spiral Turtle
-	//turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 0, 0, 1.0f, 1.0f, 1.0f);
-	//if (glfwGetTime() > 6 * 3.141529)
-	//	glfwSetTime(0.0);
-
-
 	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3 TODO
 
 	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
@@ -394,8 +399,6 @@ void draw()
 
 	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
 	//terrain.draw(g_SimpleShader);
-	
-	//jellyfish.set_modelTransform(0.0f, 0.0f, 0.f, 0.0f, 0.0f, 0.0f, 0.01f, 0.01f, 0.01f);
 }
 
 // ------------------------------------------------------------------------------------------
