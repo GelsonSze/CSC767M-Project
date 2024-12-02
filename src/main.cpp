@@ -38,6 +38,7 @@
 #include "Seafloor.cpp"
 #include "Terrain.cpp"
 #include "Shrine.cpp"
+#include "Skybox.cpp"
 
 #include "globals.h"
 
@@ -59,6 +60,7 @@ int totalObjs = 0;
 int totalTextures = 0;
 
 float cameraPosx = 0.0f, cameraPosy = 0.3f, cameraPosz = 1.1f;
+//float cameraPosx = 0.0f, cameraPosy = 0.2f, cameraPosz = -2.0f;
 vec3 cameraPos = vec3(cameraPosx, cameraPosy, cameraPosz);
 vec3 cameraCenter = vec3(0.0f, 0.0f, 0.0f);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
@@ -95,9 +97,11 @@ Turtle turtle = Turtle();
 Seafloor seafloor = Seafloor();
 Terrain terrain = Terrain();
 Shrine shrine = Shrine();
+Skybox skybox = Skybox();
 
 //globals
 GLuint g_SimpleShader = 0;
+GLuint g_SimpleShader_sky = 0;
 vector <Model*> models;
 
 // FPS Camera Variables
@@ -107,6 +111,11 @@ float lastX = 256.0f;
 float lastY = 256.0f;
 float cam_yaw = -90.0f;
 float cam_pitch = 0.0f;
+
+// Test Variables
+GLuint texture_id_sphere = 0;
+GLuint g_Vao_sphere = 0;
+GLuint g_NumTriangles_sphere = 0;
 
 void updateCameraVectors(float x) {
 	cameraFront = normalize(x * (cameraPos - cameraCenter));
@@ -130,11 +139,7 @@ float flowerZ(float t) {
 	return ((-0.13 - (0.25 * flowerX(t)) + (0.25 * flowerY(t))) / -0.25) - 0.5;
 }
 
-// ------------------------------------------------------------------------------------------
-// This function manually creates a square geometry (defined in the array vertices[])
-// ------------------------------------------------------------------------------------------
-void load()
-{
+void push_back_models() {
 	//models.push_back(&clam);
 	//models.push_back(&coral);
 	//models.push_back(&fish);
@@ -148,21 +153,114 @@ void load()
 	//models.push_back(&terrain);
 	//models.push_back(&seafloor);
 	models.push_back(&turtle);
+}
+
+void loadTest() {
+	vector<tinyobj::shape_t> sphere = {};
+	bool ret = tinyobj::LoadObj(sphere, "assets/Test/sphere.obj");
+
+	gl_createAndBindAttribute(
+		&(sphere[0].mesh.positions[0]),
+		sphere[0].mesh.positions.size() * sizeof(float),
+		g_SimpleShader,
+		"a_vertex",
+		3
+	);
+
+	// extract uv coords buffer from the shape to create the VBO
+	gl_createAndBindAttribute(
+		&(sphere[0].mesh.texcoords[0]),
+		sphere[0].mesh.texcoords.size() * sizeof(GLfloat),
+		g_SimpleShader,
+		"a_uv",
+		2
+	);
+
+	// Add Index VBO
+	gl_createIndexBuffer(
+		&(sphere[0].mesh.indices[0]),
+		sphere[0].mesh.indices.size() * sizeof(unsigned int));
+
+	// Add Lighting VBO
+	gl_createAndBindAttribute(
+		&(sphere[0].mesh.normals[0]),
+		sphere[0].mesh.normals.size() * sizeof(float),
+		g_SimpleShader,
+		"a_normal",
+		3
+	);
+
+	// unbind everything
+	gl_unbindVAO();
+
+	// store number of triangles (use in draw())
+	g_NumTriangles_sphere = sphere[0].mesh.indices.size() / 3;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	char sphere_path[] = "textures/Test/sphere.png";
+	int width, height, numChannels;
+	unsigned char* pixels_sphere;
+
+	// load texture objects
+	stbi_set_flip_vertically_on_load(true);
+
+	pixels_sphere = stbi_load(sphere_path, &width, &height, &numChannels, 0);
+
+	glGenTextures(1, &texture_id_sphere);
+
+	glBindTexture(GL_TEXTURE_2D, texture_id_sphere);
+
+	glTexParameteri(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR
+	);
+
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_RGBA,
+		width,
+		height,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		pixels_sphere
+	);
+}
+
+// ------------------------------------------------------------------------------------------
+// This function manually creates a square geometry (defined in the array vertices[])
+// ------------------------------------------------------------------------------------------
+void load()
+{
+	Shader simpleShader("src/shader.vert", "src/shader.frag");
+	g_SimpleShader = simpleShader.program;
+	
+	Shader simpleShader_key("src/shader_sky.vert", "src/shader_sky.frag");
+	g_SimpleShader_sky = simpleShader_key.program;
+
+	push_back_models();	
+	skybox.load(g_SimpleShader_sky);
+
+	/** FOR TESTING PURPOSES ONLY!! **/
+	//loadTest();
+	/** FOR TESTING PURPOSES ONLY!! **/
 
 	//**********************
 	// CODE TO LOAD TO MEMORY
 	//**********************
-	Shader simpleShader("src/shader.vert", "src/shader.frag");
-	g_SimpleShader = simpleShader.program;
-
-	// Create the VAO where we store all geometry (stored in g_Vao)
 	for (auto &model : models) {
-		cout << "BEFORE LOAD" << "\n";
+		//cout << "BEFORE LOAD" << "\n";
 		model->load();
-		cout << "AFTER LOAD" << "\n";
+		//cout << "AFTER LOAD" << "\n";
+
 		model->g_Vao = gl_createAndBindVAO();
 		std::cout << "vao: " << model->g_Vao << "\n";
+
 		vector< tinyobj::shape_t > shapes = model->shapes;
+
 		//create vertex buffer for positions, colors, and indices, and bind them to shader
 		gl_createAndBindAttribute(&(shapes[0].mesh.positions[0]),
 			shapes[0].mesh.positions.size() * sizeof(float),
@@ -186,6 +284,52 @@ void load()
 		//unbind everything
 		gl_unbindVAO();
 	}
+
+	cout << "LOADING DONE!" << endl;
+}
+
+void drawTest() {
+	GLuint model_loc = glGetUniformLocation(g_SimpleShader, "u_model");
+	GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
+	GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
+
+	GLuint u_texture = glGetUniformLocation(g_SimpleShader, "u_texture");
+
+	GLuint light_loc = glGetUniformLocation(g_SimpleShader, "u_light_dir");
+	GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
+	GLuint ambient_loc = glGetUniformLocation(g_SimpleShader, "u_ambient");
+	GLuint diffuse_loc = glGetUniformLocation(g_SimpleShader, "u_diffuse");
+	GLuint specular_loc = glGetUniformLocation(g_SimpleShader, "u_specular");
+	GLuint shininess_loc = glGetUniformLocation(g_SimpleShader, "u_shininess");
+
+	mat4 model_matrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, -2.0f)) *
+						scale(mat4(1.0f), vec3(0.3, 0.3, 0.3));
+
+	mat4 view_matrix = glm::lookAt(cameraPos, cameraCenter, cameraUp);
+
+	glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+	glUniform3f(light_loc, 10.0f, 10.0f, 10.0f);
+	glUniform3f(cam_pos_loc, cameraPos.x, cameraPos.y, cameraPos.z);
+	glUniform3f(ambient_loc, 0.1f, 0.1f, 0.1f);
+	glUniform3f(diffuse_loc, 1.0f, 1.0f, 1.0f);
+	glUniform3f(specular_loc, 1.0f, 1.0f, 1.0f);
+	glUniform1f(shininess_loc, 40.0f);
+
+	// bind the sampler to the texture unit 0
+	glUniform1i(u_texture, 0);
+
+	// activate texture unit i and bin the texture object
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_id_sphere);
+
+	//bind the geometry
+	gl_bindVAO(g_Vao_sphere);
+
+	// Draw to screen
+	glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles_sphere, GL_UNSIGNED_INT, 0);
 }
 
 // ------------------------------------------------------------------------------------------
@@ -194,22 +338,35 @@ void load()
 void draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	glDisable(GL_DEPTH_TEST);
+	glCullFace(GL_FRONT);
+	skybox.draw(g_SimpleShader_sky, cameraPos, view_matrix, projection_matrix);
 
 	// activate shader
 	glUseProgram(g_SimpleShader);
 
-	GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
+	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
 
-	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+	// MOVEMENT 01 - Spiral Turtle
+	turtle.set_modelTransform(sin(glfwGetTime()),
+							  0.1 * glfwGetTime() - 1,
+							  cos(glfwGetTime()),
+							  0, 0, 0,
+							  1.0f, 1.0f, 1.0f);
+	if (glfwGetTime() > 6 * glm::pi<float>())
+		glfwSetTime(0.0);
+	turtle.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	//drawTest();
+	//cout << "Test" << endl;
+	//GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
+	//glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
 	//projection matrix
-	GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
-
-	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+	//GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
+	//glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 
 	//bind the geometry
@@ -222,14 +379,12 @@ void draw()
 
 
 	// MOVEMENT 01 - Spiral Turtle
-	turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
-	if (glfwGetTime() > 6 * 3.141529)
-		glfwSetTime(0.0);
+	//turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 0, 0, 1.0f, 1.0f, 1.0f);
+	//if (glfwGetTime() > 6 * 3.141529)
+	//	glfwSetTime(0.0);
 
 
 	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3 TODO
-
-	turtle.draw(g_SimpleShader);
 
 	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
 	//coral.draw(g_SimpleShader);

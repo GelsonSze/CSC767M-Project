@@ -80,12 +80,27 @@
     <ClCompile Include="..\src\Turtle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Shrine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shader.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\src\shader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\src\shader_sky.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\src\shader_sky.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

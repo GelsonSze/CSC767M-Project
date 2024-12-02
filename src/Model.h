@@ -43,18 +43,27 @@ public:
 	float shininess;
 
 public:
-	Model() { set_modelTransform(); set_light(); set_ambience(); set_diffuse(); set_specular(); };
-	virtual ~Model() {};
-	virtual void load() {
+	Model() {
+		set_modelTransform();
+		set_light();
+		set_ambience();
+		set_diffuse();
+		set_specular();
+	};
 
+	virtual ~Model() {};
+	
+	virtual void load() {
 		//**********************
-		// CODE TO SET OBJ
+		// [1] CODE TO SET OBJ
 		//**********************
 		const char* model_c_str = this->model_path.c_str();
 		
 		// For objects with mtl files
 		vector<tinyobj::material_t> mat = {};
 		string err;
+
+		// Load Objects
 		bool ret = false;
 		if (this->model_mtl.size() > 0) {
 			const char* mtl_c_str = this->model_mtl.c_str();
@@ -71,6 +80,8 @@ public:
 		}
 		else
 			cout << "OBJ File: " << model_c_str << " cannot be found or is not a valid OBJ File\n";
+
+		g_NumTriangles = shapes[0].mesh.indices.size() / 3;
 
 		//**********************
 		// CODE TO LOAD TEXTURE
@@ -93,23 +104,25 @@ public:
 			
 			if (pixels) {
 				cout << "Num channels: " << numChannels << "\n";
-				if (numChannels == 1) {
-					format = GL_RED;
-				}
-				else if (numChannels == 2) {
-					format = GL_RG;
-				}
-				else if (numChannels == 3) {
-					format = GL_RGB;
-				}
-				else if (numChannels == 4) {
-					format = GL_RGBA;
-				}
-				else {
-					cout << "Failed to load Texture " << tex.c_str() << "\n width: " << width << 
-						", height: " << height << ", numChannels: " << numChannels;
+				switch (numChannels) {
+					case 1:
+						format = GL_RED;
+						break;
+					case 2:
+						format = GL_RG;
+						break;
+					case 3:
+						format = GL_RGB;
+						break;
+					case 4:
+						format = GL_RGBA;
+						break;
+					default:
+						cout << "Failed to load Texture " << tex.c_str() << "\n width: " << width <<
+							", height: " << height << ", numChannels: " << numChannels;
 				}
 			}
+
 			cout << "BEFORE GLTEXIMAGE2D" << "\n";
 			glTexImage2D(GL_TEXTURE_2D, // target
 				0,						// level = 0, no mipmap
@@ -122,10 +135,9 @@ public:
 				pixels);
 			cout << "AFTER GLTEXIMAGE2D" << "\n";
 		}
-		g_NumTriangles = shapes[0].mesh.indices.size() / 3;
 	};
 
-	virtual void draw(GLuint g_Shader) {
+	virtual void draw(GLuint g_Shader, mat4 vm, mat4 pm) {
 		gl_bindVAO(g_Vao);
 		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
 		//FOR DEBUG
@@ -165,6 +177,12 @@ public:
 			scale(mat4(1.0f), vec3(s.x, s.y, s.z));
 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		GLuint view_loc = glGetUniformLocation(g_Shader, "u_view");
+		glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(vm));
+
+		GLuint projection_loc = glGetUniformLocation(g_Shader, "u_projection");
+		glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(pm));
 
 		// Draw to screen
 		glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles, GL_UNSIGNED_INT, 0);
