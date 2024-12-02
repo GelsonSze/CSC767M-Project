@@ -86,7 +86,9 @@ mat4 projection_matrix = perspective(
 //objects
 Clam clam = Clam();
 Coral coral = Coral();
-Fish fish = Fish();
+Fish fish1 = Fish();
+Fish fish2 = Fish();
+Fish fish3 = Fish();
 Jellyfish jellyfish = Jellyfish();
 Pearl pearl = Pearl();
 Pillar pillar = Pillar();
@@ -96,7 +98,10 @@ Trident trident = Trident();
 Turtle turtle = Turtle();
 Seafloor seafloor = Seafloor();
 Terrain terrain = Terrain();
-Shrine shrine = Shrine();
+Shrine shrine_w = Shrine();
+Shrine shrine_n = Shrine();
+//Shrine shrine_s = Shrine();
+
 Skybox skybox = Skybox();
 
 //globals
@@ -139,17 +144,28 @@ float flowerZ(float t) {
 	return ((-0.13 - (0.25 * flowerX(t)) + (0.25 * flowerY(t))) / -0.25) - 0.5;
 }
 
+float fishXY(float t, float c) {
+	return sin(c * t);
+}
+
+float fishZ(float t) {
+	return cos(t);
+}
+
 void push_back_models() {
 	//models.push_back(&clam);
 	//models.push_back(&coral);
-	//models.push_back(&fish);
+	models.push_back(&fish1);
+	models.push_back(&fish2);
+	models.push_back(&fish3);
 	models.push_back(&jellyfish);
-	//models.push_back(&pearl);
-	//models.push_back(&pillar);
+	models.push_back(&pearl);
+	models.push_back(&pillar);
 	//models.push_back(&seaweed);
 	//models.push_back(&stalagmite);
 	//models.push_back(&trident);
-	//models.push_back(&shrine);
+	models.push_back(&shrine_w);
+	models.push_back(&shrine_n);
 	//models.push_back(&terrain);
 	//models.push_back(&seafloor);
 	models.push_back(&turtle);
@@ -367,6 +383,53 @@ void draw()
 								 0.3f, 0.3f, 0.3f);
 	jellyfish.draw(g_SimpleShader, view_matrix, projection_matrix);
 
+	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
+	fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
+							 fishXY(glfwGetTime(), 1),
+							 fishZ(glfwGetTime()),
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish1.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	fish2.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.1,
+							 fishXY(glfwGetTime(), 1) - 0.1,
+							 fishZ(glfwGetTime()) - 0.1,
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish2.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	fish3.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.2,
+							 fishXY(glfwGetTime(), 1) + 0.2,
+							 fishZ(glfwGetTime()) - 0.2,
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish3.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+
+	// SHRINES
+	shrine_w.set_modelTransform(-1.0f, 0.0f, 0.0f,
+							  0.0f, 180.0f, 0.0f,
+							  0.05f, 0.05f, 0.05f);
+	shrine_w.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	shrine_n.set_modelTransform(0.0f, 0.0f, -1.0f,
+							  0.0f, 90.0f, 0.0f,
+							  0.05f, 0.05f, 0.05f);
+	shrine_n.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	// TODO: shrine_s
+
+	// PILLAR AND PEARL
+	pillar.set_modelTransform(0.0f, 0.0f, -0.5f,
+							  0.0f, 0.0f, 0.0f,
+							  0.05f, 0.05f, 0.05f);
+	pillar.draw(g_SimpleShader, view_matrix, projection_matrix);
+
+	// TODO: APPLY ALPHA BLENDING
+	pearl.set_modelTransform(0.0f, 0.3f, -0.5f,
+							  0.0f, 0.0f, 0.0f,
+							  0.25f, 0.25f, 0.25f);
+	pearl.draw(g_SimpleShader, view_matrix, projection_matrix);
 
 
 	/// EXTRA CODE
@@ -384,18 +447,9 @@ void draw()
 	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
 	//trident.draw(g_SimpleShader);
 	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
-	 
-	// MOVEMENT 02 - Flower Jellyfish
-	//turtle.set_modelTransform(flowerX(glfwGetTime()), flowerY(glfwGetTime()), flowerZ(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
-
-
-	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3 TODO
 
 	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
 	//coral.draw(g_SimpleShader);
-
-	//shrine.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
-	//shrine.draw(g_SimpleShader);
 
 	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
 	//terrain.draw(g_SimpleShader);
