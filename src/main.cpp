@@ -49,10 +49,6 @@ int g_ViewportWidth = 512; int g_ViewportHeight = 512; // Default window size, i
 double mouse_x, mouse_y;	//variables storing mouse position
 const vec3 g_backgroundColor(0.2f, 0.2f, 0.2f); // background colour - a GLM 3-component vector
 
-//vec3 g_light_dir(10.0, 10.0, 10.0);
-//float x = 0.0f, y = 0.0f, z = 0.0f;
-//float s = 0.2, r = 0.0;
-//float radius = 1.5f;
 
 //global variables for global header
 int totalObjs = 0;
@@ -130,6 +126,29 @@ float flowerZ(float t) {
 	return ((-0.13 - (0.25 * flowerX(t)) + (0.25 * flowerY(t))) / -0.25) - 0.5;
 }
 
+//Particles
+//code gotten from https://learnopengl.com/In-Practice/2D-Game/Particles 
+//it is code for a 2d game which contains stuff that is abstracted so u have to adjust the code manually
+struct Particle {
+	glm::vec2 position, velocity;
+	glm::vec4 color;
+	float     life;
+
+	Particle()
+		: position(1.0f, 0.0f), velocity(0.0f), color(1.0f, 0.0f, 0.0f, 1.0f), life(30.0f) { }
+};
+unsigned int nr_particles = 500;
+vector<Particle> particles;
+unsigned int lastUsedParticle = 0;
+GLuint g_ParticleShader = 0;
+GLuint particle_vao = 0;
+
+//time for particles
+float currentFrame = 0.0f;
+float lastFrame = 0.0f;
+float deltaTime = 0.0f;
+GLuint particleid;
+
 // ------------------------------------------------------------------------------------------
 // This function manually creates a square geometry (defined in the array vertices[])
 // ------------------------------------------------------------------------------------------
@@ -154,6 +173,9 @@ void load()
 	//**********************
 	Shader simpleShader("src/shader.vert", "src/shader.frag");
 	g_SimpleShader = simpleShader.program;
+
+	Shader particleShader("src/shader_particle.vert", "src/shader_particle.frag");
+	g_ParticleShader = particleShader.program;
 
 	// Create the VAO where we store all geometry (stored in g_Vao)
 	for (auto &model : models) {
@@ -186,13 +208,61 @@ void load()
 		//unbind everything
 		gl_unbindVAO();
 	}
+
+	for (unsigned int i = 0; i < nr_particles; ++i)
+		particles.push_back(Particle());
+
+	particle_vao = gl_createAndBindVAO();
+	gl_unbindVAO();
+
+	//int width = 0, height = 0, numChannels = 0;
+	//unsigned char* pixels;
+
+	//glGenTextures(1, &particleid);
+	//stbi_set_flip_vertically_on_load(true);
+	//pixels = stbi_load("textures/Particles/particle.png", &width, &height, &numChannels, 0);
+	//GLenum format = GL_RGB;
+	//if (pixels) {
+	//	cout << "Num channels: " << numChannels << "\n";
+	//	if (numChannels == 1) {
+	//		format = GL_RED;
+	//	}
+	//	else if (numChannels == 2) {
+	//		format = GL_RG;
+	//	}
+	//	else if (numChannels == 3) {
+	//		format = GL_RGB;
+	//	}
+	//	else if (numChannels == 4) {
+	//		format = GL_RGBA;
+	//	}
+	//	else {
+	//		cout << "Failed to load Particle Texture" << "\n width: " << width <<
+	//			", height: " << height << ", numChannels: " << numChannels;
+	//	}
+	//}
+	//glBindTexture(GL_TEXTURE_2D, particleid);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexImage2D(GL_TEXTURE_2D, // target
+	//	0,						// level = 0, no mipmap
+	//	format,					// how the data will be stored (Grayscale, RGB, RGBA)
+	//	width,					// width of the image
+	//	height,					// height of the image
+	//	0,						// border
+	//	format,					// format of original data
+	//	GL_UNSIGNED_BYTE,		// type of data
+	//	pixels);
 }
 
+unsigned int FirstUnusedParticle();
+void RespawnParticle(Particle& particle, Model& model);
 // ------------------------------------------------------------------------------------------
 // This function actually draws to screen and called non-stop, in a loop
 // ------------------------------------------------------------------------------------------
 void draw()
 {
+	currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
@@ -215,21 +285,21 @@ void draw()
 	//bind the geometry
 	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
 	//trident.draw(g_SimpleShader);
-	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
+	//turtle.set_modelTransform(0, 0.2f, 0.9f, 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
 	 
 	// MOVEMENT 02 - Flower Jellyfish
 	//turtle.set_modelTransform(flowerX(glfwGetTime()), flowerY(glfwGetTime()), flowerZ(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
 
 
 	// MOVEMENT 01 - Spiral Turtle
-	turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
-	if (glfwGetTime() > 6 * 3.141529)
-		glfwSetTime(0.0);
+	//turtle.set_modelTransform(sin(glfwGetTime()), 0.1 * glfwGetTime() - 1, cos(glfwGetTime()), 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
+	//if (glfwGetTime() > 6 * 3.141529)
+	//	glfwSetTime(0.0);
 
 
 	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3 TODO
 
-	turtle.draw(g_SimpleShader);
+	//turtle.draw(g_SimpleShader);
 
 	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
 	//coral.draw(g_SimpleShader);
@@ -241,6 +311,90 @@ void draw()
 	//terrain.draw(g_SimpleShader);
 	
 	//jellyfish.set_modelTransform(0.0f, 0.0f, 0.f, 0.0f, 0.0f, 0.0f, 0.01f, 0.01f, 0.01f);
+	turtle.set_modelTransform(0.5f, 0.5f);
+	turtle.draw(g_SimpleShader);
+
+	unsigned int nr_new_particles = 2;
+	// add new particles
+	for (unsigned int i = 0; i < nr_new_particles; ++i)
+	{
+		int unusedParticle = FirstUnusedParticle();
+		RespawnParticle(particles[unusedParticle], pearl);
+	}
+	// update all particles
+	for (unsigned int i = 0; i < nr_particles; ++i)
+	{
+		Particle& p = particles[i];
+		p.life -= deltaTime; // reduce life
+		if (p.life > 0.0f)
+		{	// particle is alive, thus update
+			p.position -= p.velocity * deltaTime;
+			p.color.a -= deltaTime * 2.5f;
+		}
+	}
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glEnable(GL_POINT_SIZE);
+	glUseProgram(g_ParticleShader);
+	for (Particle particle : particles)
+	{
+		if (particle.life > 0.0f)
+		{
+			gl_bindVAO(particle_vao);
+			//GLuint projection_loc = glGetUniformLocation(g_ParticleShader, "projection");
+			//glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+			GLuint position_loc = glGetUniformLocation(g_ParticleShader, "position");
+			glUniform2f(position_loc, particle.position.x, particle.position.y);  // Set x and y position
+
+			GLuint life_loc = glGetUniformLocation(g_ParticleShader, "lifespan");
+			glUniform1f(life_loc, particle.life);  // Set lifespan
+
+			GLuint particle_color_loc = glGetUniformLocation(g_ParticleShader, "color");
+			glUniform3f(particle_color_loc, particle.color.r, particle.color.g, particle.color.b);  // Set color
+	
+			//GLuint sprite = glGetUniformLocation(g_ParticleShader, "sprite");
+			//glUniform1i(sprite, 0);
+
+			//glActiveTexture(GL_TEXTURE10);
+			//glBindTexture(GL_TEXTURE_2D, particleid);
+
+			glBindVertexArray(particle_vao);
+			glDrawArrays(GL_POINTS, 0, 6);
+			glBindVertexArray(0);
+		}
+	}
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+unsigned int FirstUnusedParticle()
+{
+	// search from last used particle, this will usually return almost instantly
+	for (unsigned int i = lastUsedParticle; i < nr_particles; ++i) {
+		if (particles[i].life <= 0.0f) {
+			lastUsedParticle = i;
+			return i;
+		}
+	}
+	// otherwise, do a linear search
+	for (unsigned int i = 0; i < lastUsedParticle; ++i) {
+		if (particles[i].life <= 0.0f) {
+			lastUsedParticle = i;
+			return i;
+		}
+	}
+	// override first particle if all others are alive
+	lastUsedParticle = 0;
+	return 0;
+};
+
+void RespawnParticle(Particle& particle, Model& model)
+{
+	float random = ((rand() % 100) - 50) / 10.0f;
+	float rColor = 0.5f + ((rand() % 100) / 100.0f);
+	particle.position = vec2(model.t.x, model.t.y) + random;
+	particle.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	particle.life = 3.0f;
+	particle.velocity = vec2(((rand() % 100) - 50) / 10.0f, ((rand() % 100) - 50) / 10.0f);
 }
 
 // ------------------------------------------------------------------------------------------

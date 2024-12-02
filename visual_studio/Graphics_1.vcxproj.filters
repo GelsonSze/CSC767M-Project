@@ -39,6 +39,9 @@
     <ClInclude Include="..\src\globals.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Particles.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -80,12 +83,30 @@
     <ClCompile Include="..\src\Turtle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Seafloor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Shrine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Particles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shader.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\src\shader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\src\shader_particle.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\src\shader_particle.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
