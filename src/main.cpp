@@ -116,6 +116,8 @@ float lastX = 256.0f;
 float lastY = 256.0f;
 float cam_yaw = -90.0f;
 float cam_pitch = 0.0f;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 // Test Variables
 GLuint texture_id_sphere = 0;
@@ -353,6 +355,10 @@ void drawTest() {
 // ------------------------------------------------------------------------------------------
 void draw()
 {
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
@@ -365,6 +371,20 @@ void draw()
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
 
+	GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
+
+	mat4 view_matrix = glm::lookAt(
+		cameraPos,
+		cameraPos + cameraFront,
+		cameraUp
+	);
+
+	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+
+	GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
+	// this is the camera position, eye/cameraPos
+	glUniform3f(cam_pos_loc, cameraPos.x, cameraPos.y, cameraPos.z);
+
 	// MOVEMENT 01 - Spiral Turtle
 	turtle.set_modelTransform(sin(glfwGetTime()),
 							  0.1 * glfwGetTime() - 1,
@@ -373,7 +393,7 @@ void draw()
 							  1.0f, 1.0f, 1.0f);
 	if (glfwGetTime() > 6 * glm::pi<float>())
 		glfwSetTime(0.0);
-	turtle.draw(g_SimpleShader, view_matrix, projection_matrix);
+	turtle.draw(g_SimpleShader, view_matrix);
 
 	// MOVEMENT 02 - Jellyfish
 	jellyfish.set_modelTransform(flowerX(glfwGetTime()),
@@ -381,7 +401,7 @@ void draw()
 								 flowerZ(glfwGetTime()),
 								 0, 180.0f, 0,
 								 0.3f, 0.3f, 0.3f);
-	jellyfish.draw(g_SimpleShader, view_matrix, projection_matrix);
+	jellyfish.draw(g_SimpleShader, view_matrix);
 
 	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
 	fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
@@ -389,33 +409,33 @@ void draw()
 							 fishZ(glfwGetTime()),
 							 0, 0, 0,
 							 0.3f, 0.3f, 0.3f);
-	fish1.draw(g_SimpleShader, view_matrix, projection_matrix);
+	fish1.draw(g_SimpleShader, view_matrix);
 
 	fish2.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.1,
 							 fishXY(glfwGetTime(), 1) - 0.1,
 							 fishZ(glfwGetTime()) - 0.1,
 							 0, 0, 0,
 							 0.3f, 0.3f, 0.3f);
-	fish2.draw(g_SimpleShader, view_matrix, projection_matrix);
+	fish2.draw(g_SimpleShader, view_matrix);
 
 	fish3.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.2,
 							 fishXY(glfwGetTime(), 1) + 0.2,
 							 fishZ(glfwGetTime()) - 0.2,
 							 0, 0, 0,
 							 0.3f, 0.3f, 0.3f);
-	fish3.draw(g_SimpleShader, view_matrix, projection_matrix);
+	fish3.draw(g_SimpleShader, view_matrix);
 
 
 	// SHRINES
 	shrine_w.set_modelTransform(-1.0f, 0.0f, 0.0f,
 							  0.0f, 180.0f, 0.0f,
 							  0.05f, 0.05f, 0.05f);
-	shrine_w.draw(g_SimpleShader, view_matrix, projection_matrix);
+	shrine_w.draw(g_SimpleShader, view_matrix);
 
 	shrine_n.set_modelTransform(0.0f, 0.0f, -1.0f,
 							  0.0f, 90.0f, 0.0f,
 							  0.05f, 0.05f, 0.05f);
-	shrine_n.draw(g_SimpleShader, view_matrix, projection_matrix);
+	shrine_n.draw(g_SimpleShader, view_matrix);
 
 	// TODO: shrine_s
 
@@ -423,13 +443,13 @@ void draw()
 	pillar.set_modelTransform(0.0f, 0.0f, -0.5f,
 							  0.0f, 0.0f, 0.0f,
 							  0.05f, 0.05f, 0.05f);
-	pillar.draw(g_SimpleShader, view_matrix, projection_matrix);
+	pillar.draw(g_SimpleShader, view_matrix);
 
 	// TODO: APPLY ALPHA BLENDING
 	pearl.set_modelTransform(0.0f, 0.3f, -0.5f,
 							  0.0f, 0.0f, 0.0f,
 							  0.25f, 0.25f, 0.25f);
-	pearl.draw(g_SimpleShader, view_matrix, projection_matrix);
+	pearl.draw(g_SimpleShader, view_matrix);
 
 
 	/// EXTRA CODE
@@ -521,44 +541,76 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
-void mouse_callback(GLFWwindow* window, double x, double y) {
-	float xoffset, yoffset;
-	float sensitivity = 0.01f;
+//void mouse_callback(GLFWwindow* window, double x, double y) {
+//	float xoffset, yoffset;
+//	float sensitivity = 0.01f;
+//
+//	if (isDrag) {
+//		if (firstMouse) {
+//			lastX = x;
+//			lastY = y;
+//			firstMouse = false;
+//		}
+//
+//		xoffset = x - lastX;
+//		yoffset = lastY - y;
+//
+//		lastX = x;
+//		lastY = y;
+//
+//		xoffset *= sensitivity;
+//		yoffset *= sensitivity;
+//
+//		cam_yaw += xoffset;
+//		cam_pitch += yoffset;
+//
+//		if (cam_pitch > 89.0f)
+//			cam_pitch = 89.0f;
+//
+//		if (cam_pitch < -89.0f)
+//			cam_pitch = -89.0f;
+//
+//		cameraCenter = normalize(vec3(
+//			cos(cam_yaw) * cos(cam_pitch),
+//			sin(cam_pitch),
+//			sin(cam_yaw) * cos(cam_pitch)
+//		));
+//
+//		cameraDirection = cameraPos;
+//		updateCameraVectors(1.0f);
+//	}
+//}
 
-	if (isDrag) {
-		if (firstMouse) {
-			lastX = x;
-			lastY = y;
-			firstMouse = false;
-		}
-
-		xoffset = x - lastX;
-		yoffset = lastY - y;
-
-		lastX = x;
-		lastY = y;
-
-		xoffset *= sensitivity;
-		yoffset *= sensitivity;
-
-		cam_yaw += xoffset;
-		cam_pitch += yoffset;
-
-		if (cam_pitch > 89.0f)
-			cam_pitch = 89.0f;
-
-		if (cam_pitch < -89.0f)
-			cam_pitch = -89.0f;
-
-		cameraCenter = normalize(vec3(
-			cos(cam_yaw) * cos(cam_pitch),
-			sin(cam_pitch),
-			sin(cam_yaw) * cos(cam_pitch)
-		));
-
-		cameraDirection = cameraPos;
-		updateCameraVectors(1.0f);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	float lastX = 0.0f, lastY = 0.0f, yaw = -90.0f, pitch = 0.0f;
+	if (firstMouse)
+	{
+		lastX = mouse_x;
+		lastY = mouse_y;
+		firstMouse = false;
 	}
+
+	float xoffset = mouse_x - lastX;
+	float yoffset = lastY - mouse_y;
+	lastX = mouse_x;
+	lastY = mouse_y;
+
+	float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	vec3 direction = vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+		sin(glm::radians(pitch)),
+		sin(glm::radians(yaw)) * cos(glm::radians(pitch)));
+	cameraFront = normalize(direction);
 }
 
 int main(void)
@@ -581,6 +633,7 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glClearColor(g_backgroundColor.x, g_backgroundColor.y, g_backgroundColor.z, 1.0f);
 

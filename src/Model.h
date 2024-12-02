@@ -137,7 +137,7 @@ public:
 		}
 	};
 
-	virtual void draw(GLuint g_Shader, mat4 vm, mat4 pm) {
+	virtual void draw(GLuint g_Shader, mat4 vm) {
 		gl_bindVAO(g_Vao);
 		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
 		//FOR DEBUG
@@ -153,9 +153,9 @@ public:
 		GLuint light_loc = glGetUniformLocation(g_Shader, "u_light_dir");
 		glUniform3f(light_loc, light.x, light.y, light.z);
 
-		GLuint cam_pos_loc = glGetUniformLocation(g_Shader, "u_cam_pos");
-		// this is the camera position, eye/cameraPos <- takes in global variable declared in main from globals.h
-		glUniform3f(cam_pos_loc, cameraPosx, cameraPosy, cameraPosz);
+		//GLuint cam_pos_loc = glGetUniformLocation(g_Shader, "u_cam_pos");
+		//// this is the camera position, eye/cameraPos <- takes in global variable declared in main from globals.h
+		//glUniform3f(cam_pos_loc, cameraPosx, cameraPosy, cameraPosz);
 
 		GLuint ambient_loc = glGetUniformLocation(g_Shader, "u_ambient");
 		glUniform3f(ambient_loc, ambience.x, ambience.y, ambience.z); // grey shadows
@@ -182,7 +182,7 @@ public:
 		glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(vm));
 
 		GLuint projection_loc = glGetUniformLocation(g_Shader, "u_projection");
-		glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(pm));
+		glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 		// Draw to screen
 		glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles, GL_UNSIGNED_INT, 0);
