@@ -103,5 +103,11 @@
     <None Include="..\src\shader_sky.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\src\shader_depth.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\src\shader_depth.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

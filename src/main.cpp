@@ -108,6 +108,8 @@ Skybox skybox = Skybox();
 GLuint g_SimpleShader = 0;
 GLuint g_SimpleShader_sky = 0;
 vector <Model*> models;
+GLuint g_SimpleShader_depth = 0;
+GLuint g_SimpleShader_shadow = 0;
 
 // FPS Camera Variables
 bool isDrag = false;
@@ -123,6 +125,11 @@ float lastFrame = 0.0f;
 GLuint texture_id_sphere = 0;
 GLuint g_Vao_sphere = 0;
 GLuint g_NumTriangles_sphere = 0;
+
+//SHADOW MAPPING
+unsigned int depthMapFBO;
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+unsigned int depthMap;
 
 void updateCameraVectors(float x) {
 	cameraFront = normalize(x * (cameraPos - cameraCenter));
@@ -172,8 +179,8 @@ void push_back_models() {
 	//models.push_back(&stalagmite);
 	//models.push_back(&trident);
 
-	//models.push_back(&shrine_w);
-	//models.push_back(&shrine_n);
+	models.push_back(&shrine_w);
+	models.push_back(&shrine_n);
 
 	//models.push_back(&terrain);
 	//models.push_back(&seafloor);
@@ -266,6 +273,9 @@ void load()
 	Shader simpleShader_key("src/shader_sky.vert", "src/shader_sky.frag");
 	g_SimpleShader_sky = simpleShader_key.program;
 
+	Shader simpleShader_depth("src/shader_depth.vert", "src/shader_depth.frag");
+	g_SimpleShader_depth = simpleShader_depth.program;
+
 	push_back_models();	
 	skybox.load(g_SimpleShader_sky);
 
@@ -310,6 +320,26 @@ void load()
 		gl_unbindVAO();
 	}
 
+	//SHADOW MAPPING
+	glGenFramebuffers(1, &depthMapFBO);
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	cout << "LOADING DONE!" << endl;
 }
 
@@ -367,8 +397,36 @@ void draw()
 		cameraCenter,
 		cameraUp
 	);
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+	mat4 lightProjection, lightView;
+	mat4 lightSpaceMatrix;
 
+	float near_plane = 1.0f, far_plane = 7.5f;
+	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	vec3 lightPos(cameraPos.x, cameraPos.y, cameraPos.z);
+	lightView = lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+	lightSpaceMatrix = lightProjection * lightView;
+
+	//shadow mapping
+	glUseProgram(g_SimpleShader_depth);
+	// render depth of scene to texture (from light's perspective)
+	GLuint light_loc = glGetUniformLocation(g_SimpleShader_depth, "lightSpaceMatrix");
+	glUniformMatrix4fv(light_loc, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, skybox.texture_id_skybox);
+		//pearl.draw(g_SimpleShader_depth, view_matrix);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// reset viewport
+	glViewport(0, 0, g_ViewportWidth, g_ViewportHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glCullFace(GL_FRONT);
@@ -386,6 +444,15 @@ void draw()
 	// this is the camera position, eye/cameraPos
 	GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
 	glUniform3f(cam_pos_loc, cameraPos.x, cameraPos.y, cameraPos.z);
+	
+	GLuint light_matrix_loc = glGetUniformLocation(g_SimpleShader, "lightSpaceMatrix");
+	glUniformMatrix4fv(light_matrix_loc, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+	GLuint diffuseTextureloc = glGetUniformLocation(g_SimpleShader, "u_texture_diffuse");
+	glUniform1i(diffuseTextureloc, 0);
+
+	GLuint shadowMap_loc = glGetUniformLocation(g_SimpleShader, "shadowMap");
+	glUniform1i(shadowMap_loc, 1);
 
 	// MOVEMENT 01 - Spiral Turtle
 	//turtle.set_modelTransform(sin(glfwGetTime()),
@@ -427,17 +494,16 @@ void draw()
 	//						 0.3f, 0.3f, 0.3f);
 	//fish3.draw(g_SimpleShader, view_matrix);
 
-
 	// SHRINES
-	//shrine_w.set_modelTransform(-1.0f, 0.0f, 0.0f,
-	//						  0.0f, 180.0f, 0.0f,
-	//						  0.05f, 0.05f, 0.05f);
-	//shrine_w.draw(g_SimpleShader, view_matrix);
+	shrine_w.set_modelTransform(-1.0f, 0.0f, 0.0f,
+							  0.0f, 180.0f, 0.0f,
+							  0.05f, 0.05f, 0.05f);
+	shrine_w.draw(g_SimpleShader, view_matrix);
 
-	//shrine_n.set_modelTransform(0.0f, 0.0f, -1.0f,
-	//						  0.0f, 90.0f, 0.0f,
-	//						  0.05f, 0.05f, 0.05f);
-	//shrine_n.draw(g_SimpleShader, view_matrix);
+	shrine_n.set_modelTransform(0.0f, 0.0f, -1.0f,
+							  0.0f, 90.0f, 0.0f,
+							  0.05f, 0.05f, 0.05f);
+	shrine_n.draw(g_SimpleShader, view_matrix);
 
 	// TODO: shrine_s
 
@@ -452,6 +518,8 @@ void draw()
 							  0.0f, 0.0f, 0.0f,
 							  0.25f, 0.25f, 0.25f);
 	pearl.draw(g_SimpleShader, view_matrix);
+
+	//render scene as normal using the generated depth / shadow map
 
 
 	/// EXTRA CODE
@@ -475,6 +543,7 @@ void draw()
 
 	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
 	//terrain.draw(g_SimpleShader);
+
 }
 
 // ------------------------------------------------------------------------------------------

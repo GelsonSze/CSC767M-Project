@@ -399,3 +399,4 @@ FodyWeavers.xsd
 *.sln.iml
 Graphics_1.exe
 Graphics_1.pdb
+*.pdb

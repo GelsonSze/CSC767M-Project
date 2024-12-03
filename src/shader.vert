@@ -12,8 +12,10 @@ out vec3 v_vertex;
 uniform mat4 u_model;
 uniform mat4 u_projection;
 uniform mat4 u_view;
+uniform mat4 lightSpaceMatrix;
 
 out vec3 v_color;
+out vec4 FragPosLightSpace;
 
 void main()
 {
@@ -30,5 +32,9 @@ void main()
 	v_normal = (normal_matrix * vec4(a_normal,1.0) ).xyz;
 
 	v_vertex = (u_model * vec4(a_vertex, 1.0)).xyz;
+	
+
+	FragPosLightSpace  = lightSpaceMatrix * u_model * vec4( a_vertex , 1.0);
+	//FragPosLightSpace  = lightSpaceMatrix * vec4(FragPos, 1.0);
 }
 

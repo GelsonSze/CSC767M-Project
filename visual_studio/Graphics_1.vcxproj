@@ -177,6 +177,8 @@
   <ItemGroup>
     <None Include="..\src\shader.frag" />
     <None Include="..\src\shader.vert" />
+    <None Include="..\src\shader_depth.frag" />
+    <None Include="..\src\shader_depth.vert" />
     <None Include="..\src\shader_sky.frag" />
     <None Include="..\src\shader_sky.vert" />
   </ItemGroup>

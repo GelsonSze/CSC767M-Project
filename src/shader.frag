@@ -6,6 +6,7 @@ in vec3 v_color;
 in vec2 v_uv;
 in vec3 v_normal;
 in vec3 v_vertex;
+in vec4 FragPosLightSpace;
 
 uniform vec3 u_color;
 uniform sampler2D u_texture;
@@ -20,6 +21,8 @@ uniform vec3 u_ambient;
 uniform vec3 u_diffuse;
 uniform vec3 u_specular;
 uniform float u_shininess;
+
+uniform sampler2D shadowMap;
 
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
 {
@@ -48,6 +51,22 @@ vec3 perturbNormal( vec3 N, vec3 V, vec2 texcoord, vec3 normal_pixel )
 	mat3 TBN = cotangent_frame(N, V, texcoord);
 	return normalize(TBN * normal_pixel);
 }
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+     //perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	// transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth + 0.05 ? 0.8 : 0.0;
+
+    return shadow;
+}  
 
 void main(void)
 {
@@ -89,7 +108,9 @@ void main(void)
 	vec3 ambient_color = texture_color * u_ambient;
 
 	//vec3 final_color = diffuse_color + spec_color + ambient_color; // phong shading equation
-	vec3 final_color = ambient_color + diffuse_color * texture_diffuse + spec_color * texture_spec;
+	float shadow = ShadowCalculation(FragPosLightSpace);
+	vec3 final_color = ambient_color + (1.0 - shadow) * (diffuse_color * texture_diffuse + spec_color * texture_spec);
+	//vec3 final_color = ambient_color + (diffuse_color * texture_diffuse + spec_color * texture_spec);
 
 	//fragColor = vec4(texture_color.xyz, 1.0);
 	fragColor = vec4(final_color, 1.0);
