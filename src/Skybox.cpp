@@ -85,7 +85,7 @@ public:
 		// Texture Object
 		int width_sky, height_sky, numChannels_sky;
 		unsigned char* pixels_sky;
-		char path_sky[] = "textures/Skybox/skybox.png";
+		char path_sky[] = "textures/Skybox/skybox_test.png";
 
 		stbi_set_flip_vertically_on_load(true);
 		pixels_sky = stbi_load(path_sky, &width_sky, &height_sky, &numChannels_sky, 0);
@@ -112,23 +112,23 @@ public:
 		);
 	}
 
-	void draw(GLuint g_SimpleShader_sky, vec3 cameraEye, mat4 vm_sky, mat4 pm_sky) {	
+	void draw(GLuint g_SimpleShader_sky, mat4 vm_sky) {	
 		// activate shader
-		glUseProgram(g_SimpleShader_sky);
+		//glUseProgram(g_SimpleShader_sky);
 
 		//// SKYBOX-RELATED CODE
 		GLuint model_loc_sky = glGetUniformLocation(g_SimpleShader_sky, "u_model");
 		GLuint view_loc_sky = glGetUniformLocation(g_SimpleShader_sky, "u_view");
 		GLuint projection_loc_sky = glGetUniformLocation(g_SimpleShader_sky, "u_projection");
 
-		mat4 model_matrix_sky = translate(mat4(1.0f), cameraEye);
+		mat4 model_matrix_sky = translate(mat4(1.0f), cameraPos);
 		//mat4 view_matrix_sky = glm::lookAt(cameraEye, cameraCenter, cameraUp);
 		//mat4 projection_matrix_sky = perspective(90.0f, 1.0f, 0.1f, 50.0f);
 		//mat4 projection_matrix_sky = ortho(-1.0f, 1.0f, -1.0f, 1.0f, -0.1f, 1.0f);
 
 		glUniformMatrix4fv(model_loc_sky, 1, GL_FALSE, glm::value_ptr(model_matrix_sky));
 		glUniformMatrix4fv(view_loc_sky, 1, GL_FALSE, glm::value_ptr(vm_sky));
-		glUniformMatrix4fv(projection_loc_sky, 1, GL_FALSE, glm::value_ptr(pm_sky));
+		glUniformMatrix4fv(projection_loc_sky, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 		// bind the texture
 		GLuint u_texture_sky = glGetUniformLocation(g_SimpleShader_sky, "u_texture");
