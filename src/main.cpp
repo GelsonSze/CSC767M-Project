@@ -99,23 +99,21 @@ vector<Coral> corals_sw = { Coral(),
 
 vector<Terrain> terrains = { Terrain(), Terrain(), Terrain() };
 vector<Shrine> shrines = { Shrine(), Shrine(), Shrine() };
-
+vector<Seaweed> seaweeds = { Seaweed(), Seaweed(), Seaweed(), Seaweed(),
+							 Seaweed(), Seaweed(), Seaweed() };
 Fish fish1 = Fish();
 Fish fish2 = Fish();
 Fish fish3 = Fish();
 Jellyfish jellyfish = Jellyfish();
+Turtle turtle = Turtle();
+
 Pearl pearl = Pearl();
 Pillar pillar = Pillar();
-Seaweed seaweed = Seaweed();
+
 Stalagmite stalagmite = Stalagmite();
 Trident trident = Trident();
-Turtle turtle = Turtle();
-Seafloor seafloor = Seafloor();
-Terrain terrain = Terrain();
-Shrine shrine_w = Shrine();
-Shrine shrine_n = Shrine();
-//Shrine shrine_s = Shrine();
 
+Terrain terrain = Terrain();
 Skybox skybox = Skybox();
 
 //globals
@@ -176,44 +174,48 @@ float fishZ(float t) {
 }
 
 void push_back_models() {
-	//models.push_back(&clam);
-
-	//for (auto &c : corals_nw) {
-	//	models.push_back(&c);
-	//}
-
-	//for (auto& c : corals_ne) {
-	//	models.push_back(&c);
-	//}
-
-	//for (auto& c : corals_sw) {
-	//	models.push_back(&c);
-	//}
-
 	// ANIMALS
-	//models.push_back(&fish1);
-	//models.push_back(&fish2);
-	//models.push_back(&fish3);
-	//models.push_back(&jellyfish);
-	//models.push_back(&turtle);
+	models.push_back(&clam);
+	models.push_back(&fish1);
+	models.push_back(&fish2);
+	models.push_back(&fish3);
+	models.push_back(&jellyfish);
+	models.push_back(&turtle);
 
-	models.push_back(&pearl);
-	models.push_back(&pillar);
+	// OBJECTS
+	//models.push_back(&pearl);
+	//models.push_back(&pillar);
 
-	models.push_back(&seaweed);
+	models.push_back(&stalagmite);
+	models.push_back(&trident);
 
-	//models.push_back(&stalagmite);
-	//models.push_back(&trident);
+	// CORALS
+	for (auto &c : corals_nw) {
+		models.push_back(&c);
+	}
 
-	//for (auto &t : terrains) {
-	//	models.push_back(&t);
-	//}
+	for (auto& c : corals_ne) {
+		models.push_back(&c);
+	}
 
+	for (auto& c : corals_sw) {
+		models.push_back(&c);
+	}
+
+	// TERRAIN
+	for (auto &t : terrains) {
+		models.push_back(&t);
+	}
+
+	// SHRINES
 	for (auto& s : shrines) {
 		models.push_back(&s);
 	}
 
-	//models.push_back(&seafloor);
+	// SEAWEEDS
+	for (auto& w : seaweeds) {
+		models.push_back(&w);
+	}
 }
 
 void loadTest() {
@@ -484,194 +486,194 @@ void draw()
 	glUniform1i(shadowMap_loc, 1);
 
 	// MOVEMENT 01 - Spiral Turtle
-	//turtle.set_modelTransform(sin(glfwGetTime()),
-	//						  0.1 * glfwGetTime() - 1,
-	//						  cos(glfwGetTime()),
-	//						  0, 0, 0,
-	//						  1.0f, 1.0f, 1.0f);
-	//if (glfwGetTime() > 6 * glm::pi<float>())
-	//	glfwSetTime(0.0);
-	//turtle.draw(g_SimpleShader, view_matrix);
+	turtle.set_modelTransform(sin(glfwGetTime()),
+							  0.1 * glfwGetTime() - 1,
+							  cos(glfwGetTime()),
+							  0, 0, 0,
+							  1.0f, 1.0f, 1.0f);
+	if (glfwGetTime() > 6 * glm::pi<float>())
+		glfwSetTime(0.0);
+	turtle.draw(g_SimpleShader, view_matrix);
 
 	// MOVEMENT 02 - Jellyfish
-	//jellyfish.set_modelTransform(flowerX(glfwGetTime()),
-	//							 flowerY(glfwGetTime()),
-	//							 flowerZ(glfwGetTime()),
-	//							 0, 180.0f, 0,
-	//							 0.3f, 0.3f, 0.3f);
-	//jellyfish.draw(g_SimpleShader, view_matrix);
+	jellyfish.set_modelTransform(flowerX(glfwGetTime()),
+								 flowerY(glfwGetTime()),
+								 flowerZ(glfwGetTime()),
+								 0, 180.0f, 0,
+								 0.75f, 0.75f, 0.75f);
+	jellyfish.draw(g_SimpleShader, view_matrix);
 
 	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
-	//fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
-	//						 fishXY(glfwGetTime(), 1),
-	//						 fishZ(glfwGetTime()),
-	//						 0, 0, 0,
-	//						 0.3f, 0.3f, 0.3f);
-	//fish1.draw(g_SimpleShader, view_matrix);
+	fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
+							 fishXY(glfwGetTime(), 1),
+							 fishZ(glfwGetTime()),
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish1.draw(g_SimpleShader, view_matrix);
 
-	//fish2.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.1,
-	//						 fishXY(glfwGetTime(), 1) - 0.1,
-	//						 fishZ(glfwGetTime()) - 0.1,
-	//						 0, 0, 0,
-	//						 0.3f, 0.3f, 0.3f);
-	//fish2.draw(g_SimpleShader, view_matrix);
+	fish2.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.1,
+							 fishXY(glfwGetTime(), 1) - 0.1,
+							 fishZ(glfwGetTime()) - 0.1,
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish2.draw(g_SimpleShader, view_matrix);
 
-	//fish3.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.2,
-	//						 fishXY(glfwGetTime(), 1) + 0.2,
-	//						 fishZ(glfwGetTime()) - 0.2,
-	//						 0, 0, 0,
-	//						 0.3f, 0.3f, 0.3f);
-	//fish3.draw(g_SimpleShader, view_matrix);
+	fish3.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.2,
+							 fishXY(glfwGetTime(), 1) + 0.2,
+							 fishZ(glfwGetTime()) - 0.2,
+							 0, 0, 0,
+							 0.3f, 0.3f, 0.3f);
+	fish3.draw(g_SimpleShader, view_matrix);
 
 	// CORAL
 	// NW
-	//float cx = -1.4f, cy = 0.7f, cz = -1.4f;
-	//int i = 0;
-	//for (i = 0; i < corals_nw.size(); i++) {
-	//	switch (i) {
-	//		case 1:
-	//			cz = -1.0f;
-	//			cy = 0.4f;
-	//			break;
-	//		case 2:
-	//			cx = -1.0f;
-	//			break;
-	//		case 3:
-	//			cz = -1.4f;
-	//			break;
-	//		case 4:
-	//			cx = -1.4f;
-	//			cy = 0.1f;
-	//			cz = -0.7f;
-	//			break;
-	//		case 5:
-	//			cx = -1.0f;
-	//			break;
-	//		case 6:
-	//			cx = -0.7f;
-	//			break;
-	//		case 7:
-	//			cz = -1.0f;
-	//			break;
-	//		case 8:
-	//			cz = -1.4f;
-	//			break;
-	//	}
+	float cx = -1.4f, cy = 0.7f, cz = -1.4f;
+	int i = 0;
+	for (i = 0; i < corals_nw.size(); i++) {
+		switch (i) {
+			case 1:
+				cz = -1.0f;
+				cy = 0.4f;
+				break;
+			case 2:
+				cx = -1.0f;
+				break;
+			case 3:
+				cz = -1.4f;
+				break;
+			case 4:
+				cx = -1.4f;
+				cy = 0.1f;
+				cz = -0.7f;
+				break;
+			case 5:
+				cx = -1.0f;
+				break;
+			case 6:
+				cx = -0.7f;
+				break;
+			case 7:
+				cz = -1.0f;
+				break;
+			case 8:
+				cz = -1.4f;
+				break;
+		}
 
-	//	corals_nw[i].set_modelTransform(cx, cy, cz,
-	//									0.0f, 0.0f, 0.0f,
-	//									0.05f, 0.05f, 0.05f);
-	//	corals_nw[i].draw(g_SimpleShader, view_matrix);
-	//}
+		corals_nw[i].set_modelTransform(cx, cy, cz,
+										0.0f, 0.0f, 0.0f,
+										0.05f, 0.05f, 0.05f);
+		corals_nw[i].draw(g_SimpleShader, view_matrix);
+	}
 
 
 	//NE
-	//cx = 1.4f;
-	//cy = 0.7f;
-	//cz = -1.4f;
-	//for (i = 0; i < corals_ne.size(); i++) {
-	//	switch (i) {
-	//	case 1:
-	//		cz = -1.0f;
-	//		cy = 0.4f;
-	//		break;
-	//	case 2:
-	//		cx = 1.0f;
-	//		break;
-	//	case 3:
-	//		cz = -1.4f;
-	//		break;
-	//	case 4:
-	//		cx = 1.4f;
-	//		cy = 0.1f;
-	//		cz = -0.7f;
-	//		break;
-	//	case 5:
-	//		cx = 1.0f;
-	//		break;
-	//	case 6:
-	//		cx = 0.7f;
-	//		break;
-	//	case 7:
-	//		cz = -1.0f;
-	//		break;
-	//	case 8:
-	//		cz = -1.4f;
-	//		break;
-	//	}
+	cx = 1.4f;
+	cy = 0.7f;
+	cz = -1.4f;
+	for (i = 0; i < corals_ne.size(); i++) {
+		switch (i) {
+		case 1:
+			cz = -1.0f;
+			cy = 0.4f;
+			break;
+		case 2:
+			cx = 1.0f;
+			break;
+		case 3:
+			cz = -1.4f;
+			break;
+		case 4:
+			cx = 1.4f;
+			cy = 0.1f;
+			cz = -0.7f;
+			break;
+		case 5:
+			cx = 1.0f;
+			break;
+		case 6:
+			cx = 0.7f;
+			break;
+		case 7:
+			cz = -1.0f;
+			break;
+		case 8:
+			cz = -1.4f;
+			break;
+		}
 
-	//	corals_nw[i].set_modelTransform(cx, cy, cz,
-	//		0.0f, 0.0f, 0.0f,
-	//		0.05f, 0.05f, 0.05f);
-	//	corals_nw[i].draw(g_SimpleShader, view_matrix);
-	//}
+		corals_nw[i].set_modelTransform(cx, cy, cz,
+			0.0f, 0.0f, 0.0f,
+			0.05f, 0.05f, 0.05f);
+		corals_nw[i].draw(g_SimpleShader, view_matrix);
+	}
 
 	//SW
-	//cx = -1.4f;
-	//cy = 0.7f;
-	//cz = 1.4f;
-	//for (i = 0; i < corals_ne.size(); i++) {
-	//	switch (i) {
-	//	case 1:
-	//		cz = 1.0f;
-	//		cy = 0.4f;
-	//		break;
-	//	case 2:
-	//		cx = -1.0f;
-	//		break;
-	//	case 3:
-	//		cz = 1.4f;
-	//		break;
-	//	case 4:
-	//		cx = -1.4f;
-	//		cy = 0.1f;
-	//		cz = 0.7f;
-	//		break;
-	//	case 5:
-	//		cx = -1.0f;
-	//		break;
-	//	case 6:
-	//		cx = -0.7f;
-	//		break;
-	//	case 7:
-	//		cz = 1.0f;
-	//		break;
-	//	case 8:
-	//		cz = 1.4f;
-	//		break;
-	//	}
+	cx = -1.4f;
+	cy = 0.7f;
+	cz = 1.4f;
+	for (i = 0; i < corals_ne.size(); i++) {
+		switch (i) {
+		case 1:
+			cz = 1.0f;
+			cy = 0.4f;
+			break;
+		case 2:
+			cx = -1.0f;
+			break;
+		case 3:
+			cz = 1.4f;
+			break;
+		case 4:
+			cx = -1.4f;
+			cy = 0.1f;
+			cz = 0.7f;
+			break;
+		case 5:
+			cx = -1.0f;
+			break;
+		case 6:
+			cx = -0.7f;
+			break;
+		case 7:
+			cz = 1.0f;
+			break;
+		case 8:
+			cz = 1.4f;
+			break;
+		}
 
-	//	corals_nw[i].set_modelTransform(cx, cy, cz,
-	//		0.0f, 0.0f, 0.0f,
-	//		0.05f, 0.05f, 0.05f);
-	//	corals_nw[i].draw(g_SimpleShader, view_matrix);
-	//}
+		corals_nw[i].set_modelTransform(cx, cy, cz,
+			0.0f, 0.0f, 0.0f,
+			0.05f, 0.05f, 0.05f);
+		corals_nw[i].draw(g_SimpleShader, view_matrix);
+	}
 
 	// TERRAIN
-	//float tx = -1.0f, tz = -1.0f, angle = 90.0f;
-	//for (i = 0; i < terrains.size(); i++) {
-	//	switch (i) {
-	//		case 1:
-	//			tx *= -1.0f;
-	//			angle = 0.0f;
-	//			break;
-	//		case 2:
-	//			tx *= -1.0f;
-	//			tz *= -1.0f;
-	//			angle = 180.0f;
-	//			break;
-	//	}
+	float tx = -1.0f, tz = -1.0f, angle = 90.0f;
+	for (i = 0; i < terrains.size(); i++) {
+		switch (i) {
+			case 1:
+				tx *= -1.0f;
+				angle = 0.0f;
+				break;
+			case 2:
+				tx *= -1.0f;
+				tz *= -1.0f;
+				angle = 180.0f;
+				break;
+		}
 
-	//	terrains[i].set_modelTransform(tx, 0.0f, tz,
-	//								   0.0f, angle, 0.0f,
-	//								   0.075f, 0.075f, 0.075f);
-	//	terrains[i].draw(g_SimpleShader, view_matrix);
-	//}
+		terrains[i].set_modelTransform(tx, 0.0f, tz,
+									   0.0f, angle, 0.0f,
+									   0.075f, 0.075f, 0.075f);
+		terrains[i].draw(g_SimpleShader, view_matrix);
+	}
 
 	// SHRINES
 	float sx = 0.0f, sz = -1.25f;
-	float angle = 90.0f; int i;
-	//angle = 90.0f;
+	// float angle = 90.0f; int i;
+	angle = 90.0f;
 	for (i = 0; i < shrines.size(); i++) {
 		switch (i) {
 		case 1:
@@ -692,45 +694,69 @@ void draw()
 		shrines[i].draw(g_SimpleShader, view_matrix);
 	}
 
+	float wx = 0.75f, wz = 1.00f;
+	for (i = 0; i < seaweeds.size(); i++) {
+		switch (i) {
+		case 1:
+			wz = 1.25f;
+			break;
+		case 2:
+			wz = 1.50f;
+			break;
+		case 3:
+			wx = 1.0f;
+			wz = 0.75f;
+			break;
+		case 4:
+			wx = 1.25f;
+			break;
+		case 5:
+			wx = 1.50f;
+			break;
+		case 6:
+			wx = 0.75f;
+			break;
+		}
+
+		seaweeds[i].set_modelTransform(
+			wx, -0.25f, wz,
+			0.0f, 90.0f, 0.0f,
+			0.05f, 0.05f, 0.05f);
+		seaweeds[i].draw(g_SimpleShader, view_matrix);
+	}
+	
+	// TRIDENT
+	trident.set_modelTransform(
+		1.25f, 0.3f, 1.25f,
+		0.0f, 45.0f, 0.0f,
+		0.2f, 0.2f, 0.2f);
+	trident.draw(g_SimpleShader, view_matrix);
+
+	// STALAGMITE
+	stalagmite.set_modelTransform(
+		1.25f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
+		0.2f, 0.2f, 0.2f);
+	stalagmite.draw(g_SimpleShader, view_matrix);
+
 	// PILLAR AND PEARL
-	//pillar.set_modelTransform(0.0f, 0.1f, -0.125f,
-	//						  0.0f, 0.0f, 0.0f,
-	//						  0.0125f, 0.0125f, 0.0125f);
-	//pillar.draw(g_SimpleShader, view_matrix);
+	pillar.set_modelTransform(0.0f, 0.1f, -0.125f,
+		0.0f, 0.0f, 0.0f,
+		0.0125f, 0.0125f, 0.0125f);
+	pillar.draw(g_SimpleShader, view_matrix);
 
 	// TODO: APPLY ALPHA BLENDING
-	//pearl.set_modelTransform(0.0f, 0.3f, -0.125f,
-	//						  0.0f, 0.0f, 0.0f,
-	//						  0.075f, 0.075f, 0.075f);
-	//pearl.draw(g_SimpleShader, view_matrix);
+	pearl.set_modelTransform(0.0f, 0.3f, -0.125f,
+		0.0f, 0.0f, 0.0f,
+		0.075f, 0.075f, 0.075f);
+	pearl.draw(g_SimpleShader, view_matrix);
 
-	seaweed.set_modelTransform(1.0f, -0.25f, 0.75f,
-		0.0f, 90.0f, 0.0f,
-		0.05f, 0.05f, 0.05f);
-	seaweed.draw(g_SimpleShader, view_matrix);
-
-	////////////////////////////// EXTRA CODE
-	//drawTest();
-	//cout << "Test" << endl;
-	//GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
-	//glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-	//projection matrix
-	//GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
-	//glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
-
-	//bind the geometry
-	//trident.set_modelTransform(2.0f, -7.0f, -3.5f, 0, 0, 0, 1.0f, 1.0f, 1.0f);
-	//trident.draw(g_SimpleShader);
-	//turtle.set_modelTransform(0, 0.2f, 0.7f, 0, 180.0f, 0, 0.3f, 0.3f, 0.3f);
-
-	//coral.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.1f, 0.1f, 0.1f);
-	//coral.draw(g_SimpleShader);
-
-	//terrain.set_modelTransform(0.0f, 0.0f, 0.0f, 0.0f, 45.0f, 0.0f, 0.05f, 0.05f, 0.05f);
-	//terrain.draw(g_SimpleShader);
-
+	// CLAM
+	clam.set_modelTransform(
+		0.0f, -0.15f, -1.20f,
+		0.0f, 0.0f, 0.0f,
+		1.5f, 1.5f, 1.5f);
+	clam.draw(g_SimpleShader, view_matrix);
 }
 
 // ------------------------------------------------------------------------------------------
@@ -859,7 +885,7 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glClearColor(g_backgroundColor.x, g_backgroundColor.y, g_backgroundColor.z, 1.0f);
 

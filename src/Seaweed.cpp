@@ -4,7 +4,7 @@ class Seaweed : public Model {
 public:
 	Seaweed() {
 		this->model_path = "assets/Seaweed/seaweed.obj";
-		this->textures = { "textures/Seaweed/seaweed.jpg" };
+		this->textures = { "textures/Seaweed/seaweed.png" };
 		this->model_mtl = { "assets/Seaweed/seaweed.mtl" };
 	};
 

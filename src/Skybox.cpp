@@ -85,7 +85,7 @@ public:
 		// Texture Object
 		int width_sky, height_sky, numChannels_sky;
 		unsigned char* pixels_sky;
-		char path_sky[] = "textures/Skybox/skybox_test.png";
+		char path_sky[] = "textures/Skybox/skybox_water.png";
 
 		stbi_set_flip_vertically_on_load(true);
 		pixels_sky = stbi_load(path_sky, &width_sky, &height_sky, &numChannels_sky, 0);
