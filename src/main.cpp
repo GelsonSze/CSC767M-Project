@@ -183,8 +183,8 @@ void push_back_models() {
 	models.push_back(&turtle);
 
 	// OBJECTS
-	//models.push_back(&pearl);
-	//models.push_back(&pillar);
+	models.push_back(&pearl);
+	models.push_back(&pillar);
 
 	models.push_back(&stalagmite);
 	models.push_back(&trident);
