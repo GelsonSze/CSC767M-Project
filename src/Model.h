@@ -55,7 +55,7 @@ public:
 	
 	virtual void load() {
 		//**********************
-		// [1] CODE TO SET OBJ
+		// CODE TO SET OBJ
 		//**********************
 		const char* model_c_str = this->model_path.c_str();
 		
@@ -68,14 +68,14 @@ public:
 		if (this->model_mtl.size() > 0) {
 			const char* mtl_c_str = this->model_mtl.c_str();
 			ret = tinyobj::LoadObj(shapes, mat, err, model_c_str, mtl_c_str);
-			cout << "Material File: " << mtl_c_str << " exists\n";
+			//cout << "Material File: " << mtl_c_str << " exists\n";
 		}
 		else {
 			ret = tinyobj::LoadObj(shapes, model_c_str);
 		}
 
 		if (ret) {
-			cout << "OBJ File: " << model_c_str << " successfully loaded\n";
+			//cout << "OBJ File: " << model_c_str << " successfully loaded\n";
 			totalObjs ++;
 		}
 		else
@@ -91,7 +91,7 @@ public:
 		GLuint textureid;
 		GLenum format = GL_RGBA;
 		for (auto tex : this->textures) {
-			cout << "TEX IS " << tex << "\n";
+			//cout << "TEX IS " << tex << "\n";
 			totalTextures++;
 
 			stbi_set_flip_vertically_on_load(true);
@@ -103,7 +103,7 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			
 			if (pixels) {
-				cout << "Num channels: " << numChannels << "\n";
+				//cout << "Num channels: " << numChannels << "\n";
 				switch (numChannels) {
 					case 1:
 						format = GL_RED;
@@ -123,7 +123,7 @@ public:
 				}
 			}
 
-			cout << "BEFORE GLTEXIMAGE2D" << "\n";
+			//cout << "BEFORE GLTEXIMAGE2D" << "\n";
 			glTexImage2D(GL_TEXTURE_2D, // target
 				0,						// level = 0, no mipmap
 				format,					// how the data will be stored (Grayscale, RGB, RGBA)
@@ -133,7 +133,7 @@ public:
 				format,					// format of original data
 				GL_UNSIGNED_BYTE,		// type of data
 				pixels);
-			cout << "AFTER GLTEXIMAGE2D" << "\n";
+			//cout << "AFTER GLTEXIMAGE2D" << "\n";
 			for (auto tex : this->texture_ids) {
 				cout << "ID: " << tex << "\n";
 			}
@@ -143,12 +143,7 @@ public:
 	virtual void draw(GLuint g_Shader, mat4 vm) {
 		gl_bindVAO(g_Vao);
 		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
-		//FOR DEBUG
-		/*cout << "PRINTING IDS\n";
-		for (auto id : texture_ids) {
-			cout << id << " ";
-		}
-		cout << "\n";*/
+
 		activateTextures(g_Shader);
 		bindTextures(g_Shader);
 		deactivateTextures(g_Shader);

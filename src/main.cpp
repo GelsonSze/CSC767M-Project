@@ -4,6 +4,8 @@
  * Names:
  *	- Alfonso Miguel Cruz
  *	- Gelson Sze
+ * 
+ * Submitted: December 04, 2024
  */
 
 //include some standard libraries
@@ -43,6 +45,7 @@
 #include "Terrain.cpp"
 #include "Shrine.cpp"
 #include "Skybox.cpp"
+#include "Gemcube.cpp"
 
 #include "globals.h"
 
@@ -50,21 +53,16 @@ using namespace std;
 using namespace glm;
 
 //global variables to help us do things
-int g_ViewportWidth = 512; int g_ViewportHeight = 512; // Default window size, in pixels
+int g_ViewportWidth = 768; int g_ViewportHeight = 768; // Default window size, in pixels
 double mouse_x, mouse_y;	//variables storing mouse position
 const vec3 g_backgroundColor(0.2f, 0.2f, 0.2f); // background colour - a GLM 3-component vector
-
-//vec3 g_light_dir(10.0, 10.0, 10.0);
-//float x = 0.0f, y = 0.0f, z = 0.0f;
-//float s = 0.2, r = 0.0;
-//float radius = 1.5f;
 
 //global variables for global header
 int totalObjs = 0;
 int totalTextures = 0;
 
+// FPS Camera Global Variables
 float cameraPosx = 0.0f, cameraPosy = 0.3f, cameraPosz = 1.1f;
-//float cameraPosx = 0.0f, cameraPosy = 0.2f, cameraPosz = -2.0f;
 vec3 cameraPos = vec3(cameraPosx, cameraPosy, cameraPosz);
 vec3 cameraCenter = vec3(0.0f, 0.0f, 0.0f);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
@@ -74,11 +72,15 @@ vec3 cameraSide = normalize(cross(cameraUp, cameraFront));
 vec3 cameraTop = cross(cameraFront, cameraSide);
 vec3 cameraDirection = vec3(0.0f, 0.0f, 0.0f);
 
-//mat4 view_matrix = glm::lookAt(
-//	cameraPos,
-//	cameraCenter,
-//	cameraUp
-//);
+bool isDrag = false;
+bool firstMouse = true;
+float lastX = 256.0f;
+float lastY = 256.0f;
+float cam_yaw = -90.0f;
+float cam_pitch = 0.0f;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 mat4 projection_matrix = perspective(
 	90.0f, // fov
 	1.0f, // aspect ratio
@@ -86,8 +88,7 @@ mat4 projection_matrix = perspective(
 	50.0f // far plane (distance from camera)
 );
 
-
-//objects
+// Object Global Variables
 Clam clam = Clam();
 Coral coral = Coral();
 Fish fish1 = Fish();
@@ -104,34 +105,32 @@ Trident trident = Trident();
 Turtle turtle = Turtle();
 Seafloor seafloor = Seafloor();
 Skybox skybox = Skybox();
+Gemcube gemcube = Gemcube();
 
-//globals
+// Shader Global Variables
 GLuint g_SimpleShader = 0;
 GLuint g_SimpleShader_sky = 0;
 vector <Model*> models;
 GLuint g_SimpleShader_depth = 0;
 GLuint g_SimpleShader_shadow = 0;
 
-// FPS Camera Variables
-bool isDrag = false;
-bool firstMouse = true;
-float lastX = 256.0f;
-float lastY = 256.0f;
-float cam_yaw = -90.0f;
-float cam_pitch = 0.0f;
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-// Test Variables
-GLuint texture_id_sphere = 0;
-GLuint g_Vao_sphere = 0;
-GLuint g_NumTriangles_sphere = 0;
-
-//SHADOW MAPPING
+// Shadow Mapping Global Variables
 unsigned int depthMapFBO;
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 unsigned int depthMap;
 
+
+/*****
+ * updateCameraVectors
+ * > updates the front, side, and top camera vectors
+ * 
+ * Parameters
+ * > x (float)
+ *	 Scalar that influences the front vector
+ * 
+ * Returns
+ * > None
+ *****/
 void updateCameraVectors(float x) {
 	cameraFront = normalize(x * (cameraPos - cameraCenter));
 	cameraSide = normalize(cross(cameraUp, cameraFront));
@@ -142,6 +141,18 @@ void updateCameraVectors(float x) {
 	//cout << cameraUp.x << " , " << cameraUp.y << " , " << cameraUp.z << endl;
 }
 
+/*****
+ * flowerX, flowerY, flowerT
+ * > translates the coordinates to make the object move in a
+ *   flower-shaped motion
+ *
+ * Parameters
+ * > t (float)
+ *	 Timepoint from glfwGetTime()
+ *
+ * Returns
+ * > floating-point coordinates
+ *****/
 float flowerX(float t) {
 	return (0.5 * cos(t)) + (0.1 * cos(5 * t) * cos(t));
 }
@@ -154,6 +165,18 @@ float flowerZ(float t) {
 	return ((-0.13 - (0.25 * flowerX(t)) + (0.25 * flowerY(t))) / -0.25) - 0.5;
 }
 
+/*****
+ * fishXY, fishZ
+ * > translates the coordinates to make the object move in a
+ *   hyperbolic paraboloid-like motion
+ *
+ * Parameters
+ * > t (float)
+ *	 Timepoint from glfwGetTime()
+ *
+ * Returns
+ * > floating-point coordinates
+ *****/
 float fishXY(float t, float c) {
 	return sin(c * t);
 }
@@ -162,6 +185,16 @@ float fishZ(float t) {
 	return cos(t);
 }
 
+/*****
+ * push_back_models
+ * > adds the object models to the `models` vector
+ *
+ * Parameters
+ * > None
+ *
+ * Returns
+ * > None
+ *****/
 void push_back_models() {
 	// ANIMALS
 	models.push_back(&clam);
@@ -171,12 +204,20 @@ void push_back_models() {
 	models.push_back(&jellyfish);
 	models.push_back(&turtle);
 
-	// OBJECTS
+	// PEARL
 	models.push_back(&pearl);
+
+	// PILLAR
 	models.push_back(&pillar);
 
+	// STALAGMITE
 	models.push_back(&stalagmite);
+
+	// TRIDENT
 	models.push_back(&trident);
+
+	// GEMCUBE
+	models.push_back(&gemcube);
 
 	// CORALS
 	models.push_back(&coral);
@@ -216,60 +257,128 @@ void load()
 	// CODE TO LOAD TO MEMORY
 	//**********************
 	for (auto &model : models) {
-		//cout << "BEFORE LOAD" << "\n";
+		// Load the Model
 		model->load();
-		//cout << "AFTER LOAD" << "\n";
 
+		// Create the VAO
 		model->g_Vao = gl_createAndBindVAO();
 		std::cout << "vao: " << model->g_Vao << "\n";
 
 		vector< tinyobj::shape_t > shapes = model->shapes;
 
-		//create vertex buffer for positions, colors, and indices, and bind them to shader
+		// Create VBO for Positions
 		gl_createAndBindAttribute(&(shapes[0].mesh.positions[0]),
 			shapes[0].mesh.positions.size() * sizeof(float),
 			simpleShader.program, "a_vertex", 3);
 
+		// Create VBO for Textures
 		gl_createAndBindAttribute(
 			&(shapes[0].mesh.texcoords[0]),
 			shapes[0].mesh.texcoords.size() * sizeof(GLfloat),
 			simpleShader.program,
 			"a_uv", 2);
 
+		// Create VBO for Normals
 		gl_createAndBindAttribute(
 			&(shapes[0].mesh.normals[0]),
 			shapes[0].mesh.normals.size() * sizeof(float),
 			simpleShader.program,
 			"a_normal", 3);
 
+		// Create VBO for Indices
 		gl_createIndexBuffer(&(shapes[0].mesh.indices[0]),
 			shapes[0].mesh.indices.size() * sizeof(unsigned int));
 
-		//unbind everything
+		// Unbind the VAO
 		gl_unbindVAO();
 	}
 
-	//SHADOW MAPPING
-	glGenFramebuffers(1, &depthMapFBO);
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	// ADVANCED FEATURE - SHADOW MAPPING
+	glGenFramebuffers(
+		1,
+		&depthMapFBO
+	);
+
+	glGenTextures(
+		1,
+		&depthMap
+	);
+
+	glBindTexture(
+		GL_TEXTURE_2D,
+		depthMap
+	);
+
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH,
+		SHADOW_HEIGHT,
+		0,
+		GL_DEPTH_COMPONENT,
+		GL_FLOAT,
+		NULL
+	);
+
+	glTexParameteri(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST
+	);
+
+	glTexParameteri(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST
+	);
+
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glTexParameteri(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_WRAP_S,
+		GL_CLAMP_TO_BORDER
+	);
+
+	glTexParameteri(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_WRAP_T,
+		GL_CLAMP_TO_BORDER
+	);
+
+	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_BORDER_COLOR,
+		borderColor
+	);
+
+	glBindFramebuffer(
+		GL_FRAMEBUFFER, 
+		depthMapFBO
+	);
+
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, 
+		GL_DEPTH_ATTACHMENT, 
+		GL_TEXTURE_2D, 
+		depthMap, 
+		0
+	);
+
 	glDrawBuffer(GL_NONE);
+
 	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	std::cout << "LOADING DONE!" << endl;
+
+	glBindFramebuffer(
+		GL_FRAMEBUFFER,
+		0
+	);
+
+	cout << "Use WASD to move around the environment." << endl;
+	cout << "Hold the left mouse button and drag the mouse around to view the environment more." << endl;
 }
 
 // ------------------------------------------------------------------------------------------
@@ -282,9 +391,7 @@ void draw()
 		cameraCenter,
 		cameraUp
 	);
-	//float currentFrame = glfwGetTime();
-	//deltaTime = currentFrame - lastFrame;
-	//lastFrame = currentFrame;
+
 	mat4 lightProjection, lightView;
 	mat4 lightSpaceMatrix;
 
@@ -310,74 +417,130 @@ void draw()
 
 	// reset viewport
 	glViewport(0, 0, g_ViewportWidth, g_ViewportHeight);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Skybox Drawing Section
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glCullFace(GL_FRONT);
 	glUseProgram(g_SimpleShader_sky);
 	skybox.draw(g_SimpleShader_sky, view_matrix);
 
-
+	// Object Drawing Section
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
 	glUseProgram(g_SimpleShader);
 
+	// View Matrix Shader Variable
 	GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
 	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
-	// this is the camera position, eye/cameraPos
+	// Camera Position Shader Variable
 	GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
 	glUniform3f(cam_pos_loc, cameraPos.x, cameraPos.y, cameraPos.z);
 	
+	// Light Matrix Shader Variable
 	GLuint light_matrix_loc = glGetUniformLocation(g_SimpleShader, "lightSpaceMatrix");
 	glUniformMatrix4fv(light_matrix_loc, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 
 	//GLuint diffuseTextureloc = glGetUniformLocation(g_SimpleShader, "u_texture_diffuse");
 	//glUniform1i(diffuseTextureloc, 0);
 
+	// Shadow Map Shader Variable
 	GLuint shadowMap_loc = glGetUniformLocation(g_SimpleShader, "shadowMap");
 	glUniform1i(shadowMap_loc, 1);
 
+	/*** Object Drawing ***/
+	// TRIDENT
+	trident.set_modelTransform(
+		1.25 + (sin(5 * glfwGetTime()) / 5),
+		0.3 + (0.05 * glfwGetTime() - 1),
+		1.25 + (cos(5 * glfwGetTime()) / 5),
+		0.0f, 45.0f, 0.0f,
+		0.2f, 0.2f, 0.2f
+	);
+	trident.draw(g_SimpleShader, view_matrix);
+
+	// STALAGMITE
+	stalagmite.set_modelTransform(
+		1.25f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
+		0.2f, 0.2f, 0.2f
+	);
+	stalagmite.draw(g_SimpleShader, view_matrix);
+
+	// PILLAR AND PEARL
+	pillar.set_modelTransform(
+		0.0f, 0.1f, -0.125f,
+		0.0f, 0.0f, 0.0f,
+		0.0125f, 0.0125f, 0.0125f
+	);
+	pillar.draw(g_SimpleShader, view_matrix);
+
 	// MOVEMENT 01 - Spiral Turtle
-	turtle.set_modelTransform(sin(glfwGetTime()),
-							  0.1 * glfwGetTime() - 1,
-							  cos(glfwGetTime()),
-							  0, 0, 0,
-							  1.0f, 1.0f, 1.0f);
+	turtle.set_modelTransform(
+		sin(glfwGetTime()),
+		0.1 * glfwGetTime() - 1,
+		cos(glfwGetTime()),
+		0, 0, 0,
+		1.0f, 1.0f, 1.0f
+	);
 	if (glfwGetTime() > 6 * glm::pi<float>())
 		glfwSetTime(0.0);
 	turtle.draw(g_SimpleShader, view_matrix);
 
-	//// MOVEMENT 02 - Jellyfish
-	jellyfish.set_modelTransform(flowerX(glfwGetTime()),
-								 flowerY(glfwGetTime()),
-								 flowerZ(glfwGetTime()),
-								 0, 180.0f, 0,
-								 0.75f, 0.75f, 0.75f);
+	// MOVEMENT 02 - Jellyfish
+	jellyfish.set_modelTransform(
+		flowerX(glfwGetTime()),
+		flowerY(glfwGetTime()),
+		flowerZ(glfwGetTime()),
+		0, 180.0f, 0,
+		0.75f, 0.75f, 0.75f
+	);
 	jellyfish.draw(g_SimpleShader, view_matrix);
 
-	//// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
-	fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
-							 fishXY(glfwGetTime(), 1),
-							 fishZ(glfwGetTime()),
-							 0, 0, 0,
-							 0.3f, 0.3f, 0.3f);
+	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
+	fish1.set_modelTransform(
+		fishXY(glfwGetTime(), 2),
+		fishXY(glfwGetTime(), 1),
+		fishZ(glfwGetTime()),
+		0, 0, 0,
+		0.3f, 0.3f, 0.3f
+	);
 	fish1.draw(g_SimpleShader, view_matrix);
 
-	fish2.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.1,
-							 fishXY(glfwGetTime(), 1) - 0.1,
-							 fishZ(glfwGetTime()) - 0.1,
-							 0, 0, 0,
-							 0.3f, 0.3f, 0.3f);
+	fish2.set_modelTransform(
+		fishXY(glfwGetTime(), 2) - 0.1,
+		fishXY(glfwGetTime(), 1) - 0.1,
+		fishZ(glfwGetTime()) - 0.1,
+		0, 0, 0,
+		0.3f, 0.3f, 0.3f
+	);
 	fish2.draw(g_SimpleShader, view_matrix);
 
-	fish3.set_modelTransform(fishXY(glfwGetTime(), 2) - 0.2,
-							 fishXY(glfwGetTime(), 1) + 0.2,
-							 fishZ(glfwGetTime()) - 0.2,
-							 0, 0, 0,
-							 0.3f, 0.3f, 0.3f);
+	fish3.set_modelTransform(
+		fishXY(glfwGetTime(), 2) - 0.2,
+		fishXY(glfwGetTime(), 1) + 0.2,
+		fishZ(glfwGetTime()) - 0.2,
+		0, 0, 0,
+		0.3f, 0.3f, 0.3f);
 	fish3.draw(g_SimpleShader, view_matrix);
+
+	// CLAM
+	clam.set_modelTransform(
+		0.0f, -0.15f, -1.20f,
+		0.0f, 0.0f, 0.0f,
+		1.5f, 1.5f, 1.5f
+	);
+	clam.draw(g_SimpleShader, view_matrix);
+
+	// SEAFLOOR
+	seafloor.set_modelTransform(
+		0.0f, -0.6f, 0.0f,
+		270.0f, 0.0f, 0.0f,
+		3.25f, 3.25f, 3.25f
+	);
+	seafloor.draw(g_SimpleShader, view_matrix);
 
 	// CORAL
 	// NW
@@ -419,7 +582,6 @@ void draw()
 										0.05f, 0.05f, 0.05f);
 		coral.draw(g_SimpleShader, view_matrix);
 	}
-
 
 	//NE
 	cx = 1.4f;
@@ -502,6 +664,7 @@ void draw()
 			0.05f, 0.05f, 0.05f);
 		coral.draw(g_SimpleShader, view_matrix);
 	}
+
 	// TERRAIN
 	float tx = -1.0f, tz = -1.0f, angle = 90.0f;
 	for (i = 0; i < 3; i++) {
@@ -525,7 +688,6 @@ void draw()
 
 	// SHRINES
 	float sx = 0.0f, sz = -1.25f;
-	// float angle = 90.0f; int i;
 	angle = 90.0f;
 	for (i = 0; i < 3; i++) {
 		switch (i) {
@@ -547,6 +709,7 @@ void draw()
 		shrine.draw(g_SimpleShader, view_matrix);
 	}
 
+	// SEAWEEDS
 	float wx = 0.75f, wz = 1.00f;
 	for (i = 0; i < 7; i++) {
 		switch (i) {
@@ -577,45 +740,23 @@ void draw()
 			0.05f, 0.05f, 0.05f);
 		seaweed.draw(g_SimpleShader, view_matrix);
 	}
-	
-	// TRIDENT
-	trident.set_modelTransform(
-		1.25f, 0.3f, 1.25f,
-		0.0f, 45.0f, 0.0f,
-		0.2f, 0.2f, 0.2f);
-	trident.draw(g_SimpleShader, view_matrix);
 
-	// STALAGMITE
-	stalagmite.set_modelTransform(
-		1.25f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f,
-		0.2f, 0.2f, 0.2f);
-	stalagmite.draw(g_SimpleShader, view_matrix);
-
-	// PILLAR AND PEARL
-	pillar.set_modelTransform(0.0f, 0.1f, -0.125f,
-		0.0f, 0.0f, 0.0f,
-		0.0125f, 0.0125f, 0.0125f);
-	pillar.draw(g_SimpleShader, view_matrix);
-
-	// TODO: APPLY ALPHA BLENDING
+	// PEARL
 	pearl.set_modelTransform(0.0f, 0.3f, -0.125f,
 		0.0f, 0.0f, 0.0f,
 		0.075f, 0.075f, 0.075f);
 	pearl.draw(g_SimpleShader, view_matrix);
 
-	// CLAM
-	clam.set_modelTransform(
-		0.0f, -0.15f, -1.20f,
-		0.0f, 0.0f, 0.0f,
-		1.5f, 1.5f, 1.5f);
-	clam.draw(g_SimpleShader, view_matrix);
+	// Alpha Blending Enabling
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
 
-	// SEAFLOOR
-	seafloor.set_modelTransform(0.0f, -0.6f, 0.0f,
-		270.0f, 0.0f, 0.0f,
-		3.25f, 3.25f, 3.25f);
-	seafloor.draw(g_SimpleShader, view_matrix);
+	// GEMCUBE - Object with Alpha Blending
+	gemcube.set_modelTransform(0.0f, -0.05f, 1.20f,
+		0.0f, 10.0f * glfwGetTime(), 0.0f,
+		0.25f, 0.25f, 0.25f);
+	gemcube.draw(g_SimpleShader, view_matrix);
 }
 
 // ------------------------------------------------------------------------------------------
@@ -631,9 +772,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	// FPS Camera Commands
 	if (key == GLFW_KEY_W && (action == GLFW_PRESS | GLFW_REPEAT)) {
-		std::cout << "Press: W" << endl;
-
-		cameraPos -= (cameraFront / 100.0f);
+		cameraPos -= (cameraFront / 75.0f);
 		updateCameraVectors(1.0f);
 	}
 
@@ -642,14 +781,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
 		}
 
-		cameraPos -= (cameraSide / 100.0f);
-		cameraCenter -= (cameraSide / 100.0f);
+		cameraPos -= (cameraSide / 75.0f);
+		cameraCenter -= (cameraSide / 75.0f);
 		updateCameraVectors(1.0f);
 	}
 
 	if (key == GLFW_KEY_S && (action == GLFW_PRESS | GLFW_REPEAT)) {
-
-		cameraPos -= (cameraFront / 100.0f);
+		cameraPos -= (cameraFront / 75.0f);
 		updateCameraVectors(-1.0f);
 	}
 
@@ -658,8 +796,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
 		}
 
-		cameraPos += (cameraSide / 100.0f);
-		cameraCenter += (cameraSide / 100.0f);
+		cameraPos += (cameraSide / 75.0f);
+		cameraCenter += (cameraSide / 75.0f);
 		updateCameraVectors(1.0f);
 	}
 }
@@ -670,12 +808,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		isDrag = true;
-		//cout << "Left mouse down at " << mouse_x << ", " << mouse_y << endl;
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 		isDrag = false;
-		//cout << "Left mouse up at " << mouse_x << ", " << mouse_y << endl;
 	}
 }
 
@@ -728,7 +864,7 @@ int main(void)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(g_ViewportWidth, g_ViewportHeight, "Hello OpenGL!", NULL, NULL);
+	window = glfwCreateWindow(g_ViewportWidth, g_ViewportHeight, "Cruz A. M., Sze G. - CSC767M Final Project", NULL, NULL);
 	if (!window) {glfwTerminate();	return -1;}
 	glfwMakeContextCurrent(window);
 	glewExperimental = GL_TRUE;
@@ -739,7 +875,6 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glClearColor(g_backgroundColor.x, g_backgroundColor.y, g_backgroundColor.z, 1.0f);
 

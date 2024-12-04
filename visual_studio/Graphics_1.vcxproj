@@ -160,6 +160,7 @@
     <ClCompile Include="..\src\Clam.cpp" />
     <ClCompile Include="..\src\Coral.cpp" />
     <ClCompile Include="..\src\Fish.cpp" />
+    <ClCompile Include="..\src\Gemcube.cpp" />
     <ClCompile Include="..\src\glfunctions.cpp" />
     <ClCompile Include="..\src\Jellyfish.cpp" />
     <ClCompile Include="..\src\main.cpp" />
