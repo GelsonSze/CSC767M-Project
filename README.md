@@ -17,6 +17,11 @@ Once the program is running, you can use the following keys to move around the e
 You may also hold the left mouse button and drag your mouse around to look at other areas of the environment within your view.
 
 ## Additional Features
-This environment makes use of shadow mapping, which allows shadows to be cast on the objects. The 
+This environment makes use of shadow mapping, which allows objects hit by light to cast shadows. Implementing shadows and light provide a more realistic view of the environment, which can be seen as you move around the environment.
 
-![alt text]()
+A sample image of the environment which shows the effect of shadows is shown below:
+
+![shadow_mapping_sample.png](https://github.com/GelsonSze/CSC767M-Project/blob/main/readme_images/shadow_mapping_sample.png)
+
+In this image, you can see the terrain on the left hand side be partially covered by a shadow, whilst the terrain on the right side is heavily covered, which darkens the objects affected by the shadow.
+
