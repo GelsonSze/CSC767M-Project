@@ -14,7 +14,7 @@ Once the program is running, you can use the following keys to move around the e
 - `S` - go left in the environment
 - `D` - go right in the environment
 
-You may also hold the left mouse button and drag your mouse around to look at other areas of the environment within your view.
+You may also move your mouse around to look at other areas of the environment within your view.
 
 ## Additional Features
 This environment makes use of shadow mapping, which allows objects hit by light to cast shadows. Implementing shadows and light provide a more realistic view of the environment, which can be seen as you move around the environment.
