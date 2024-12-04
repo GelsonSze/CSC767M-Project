@@ -216,9 +216,6 @@ void push_back_models() {
 	// TRIDENT
 	models.push_back(&trident);
 
-	// GEMCUBE
-	models.push_back(&gemcube);
-
 	// CORALS
 	models.push_back(&coral);
 
@@ -292,6 +289,34 @@ void load()
 		// Unbind the VAO
 		gl_unbindVAO();
 	}
+
+	//VAO for alpha blended gemcube
+	gemcube.load();
+	// Create the VAO
+	gemcube.g_Vao = gl_createAndBindVAO();
+	std::cout << "vao: " << gemcube.g_Vao << "\n";
+	vector< tinyobj::shape_t > shapes = gemcube.shapes;
+	// Create VBO for Positions
+	gl_createAndBindAttribute(&(shapes[0].mesh.positions[0]),
+		shapes[0].mesh.positions.size() * sizeof(float),
+		g_SimpleShader_sky, "a_vertex", 3);
+	// Create VBO for Textures
+	gl_createAndBindAttribute(
+		&(shapes[0].mesh.texcoords[0]),
+		shapes[0].mesh.texcoords.size() * sizeof(GLfloat),
+		g_SimpleShader_sky,
+		"a_uv", 2);
+	// Create VBO for Normals
+	gl_createAndBindAttribute(
+		&(shapes[0].mesh.normals[0]),
+		shapes[0].mesh.normals.size() * sizeof(float),
+		g_SimpleShader_sky,
+		"a_normal", 3);
+	// Create VBO for Indices
+	gl_createIndexBuffer(&(shapes[0].mesh.indices[0]),
+		shapes[0].mesh.indices.size() * sizeof(unsigned int));
+	// Unbind the VAO
+	gl_unbindVAO();
 
 	// ADVANCED FEATURE - SHADOW MAPPING
 	glGenFramebuffers(
@@ -377,8 +402,8 @@ void load()
 		0
 	);
 
-	cout << "Use WASD to move around the environment." << endl;
-	cout << "Hold the left mouse button and drag the mouse around to view the environment more." << endl;
+	std::cout << "Use WASD to move around the environment." << endl;
+	std::cout << "Hold the left mouse button and drag the mouse around to view the environment more." << endl;
 }
 
 // ------------------------------------------------------------------------------------------
@@ -748,15 +773,17 @@ void draw()
 	pearl.draw(g_SimpleShader, view_matrix);
 
 	// Alpha Blending Enabling
+	glUseProgram(g_SimpleShader_sky);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 
 	// MOVEMENT 07 - GEMCUBE (Object with Alpha Blending)
 	gemcube.set_modelTransform(0.0f, -0.05f, 1.20f,
 		0.0f, 10.0f * glfwGetTime(), 0.0f,
 		0.25f, 0.25f, 0.25f);
-	gemcube.draw(g_SimpleShader, view_matrix);
+	gemcube.draw(g_SimpleShader_sky, view_matrix);
 }
 
 // ------------------------------------------------------------------------------------------
@@ -819,7 +846,7 @@ void mouse_callback(GLFWwindow* window, double x, double y) {
 	float xoffset, yoffset;
 	float sensitivity = 0.01f;
 
-	if (isDrag) {
+	//if (isDrag) {
 		if (firstMouse) {
 			lastX = x;
 			lastY = y;
@@ -852,7 +879,7 @@ void mouse_callback(GLFWwindow* window, double x, double y) {
 
 		cameraDirection = cameraPos;
 		updateCameraVectors(1.0f);
-	}
+	//}
 }
 
 int main(void)
@@ -875,6 +902,7 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	glClearColor(g_backgroundColor.x, g_backgroundColor.y, g_backgroundColor.z, 1.0f);
 
