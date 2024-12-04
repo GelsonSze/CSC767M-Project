@@ -17,4 +17,6 @@ Once the program is running, you can use the following keys to move around the e
 You may also hold the left mouse button and drag your mouse around to look at other areas of the environment within your view.
 
 ## Additional Features
-This environment makes use of shadow mapping, which allows shadows to be cast on the objects. TODO
+This environment makes use of shadow mapping, which allows shadows to be cast on the objects. The 
+
+![alt text]()
