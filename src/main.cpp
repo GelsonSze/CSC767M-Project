@@ -451,7 +451,7 @@ void draw()
 	glUniform1i(shadowMap_loc, 1);
 
 	/*** Object Drawing ***/
-	// TRIDENT
+	// MOVEMENT 01 - TRIDENT
 	trident.set_modelTransform(
 		1.25 + (sin(5 * glfwGetTime()) / 5),
 		0.3 + (0.05 * glfwGetTime() - 1),
@@ -477,7 +477,7 @@ void draw()
 	);
 	pillar.draw(g_SimpleShader, view_matrix);
 
-	// MOVEMENT 01 - Spiral Turtle
+	// MOVEMENT 02 - TURTLE
 	turtle.set_modelTransform(
 		sin(glfwGetTime()),
 		0.1 * glfwGetTime() - 1,
@@ -489,7 +489,7 @@ void draw()
 		glfwSetTime(0.0);
 	turtle.draw(g_SimpleShader, view_matrix);
 
-	// MOVEMENT 02 - Jellyfish
+	// MOVEMENT 03 - JELLYFISH
 	jellyfish.set_modelTransform(
 		flowerX(glfwGetTime()),
 		flowerY(glfwGetTime()),
@@ -499,7 +499,7 @@ void draw()
 	);
 	jellyfish.draw(g_SimpleShader, view_matrix);
 
-	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
+	// MOVEMENT 04 - 06 - SCHOOL OF FISH
 	fish1.set_modelTransform(
 		fishXY(glfwGetTime(), 2),
 		fishXY(glfwGetTime(), 1),
@@ -752,7 +752,7 @@ void draw()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_CULL_FACE);
 
-	// GEMCUBE - Object with Alpha Blending
+	// MOVEMENT 07 - GEMCUBE (Object with Alpha Blending)
 	gemcube.set_modelTransform(0.0f, -0.05f, 1.20f,
 		0.0f, 10.0f * glfwGetTime(), 0.0f,
 		0.25f, 0.25f, 0.25f);
