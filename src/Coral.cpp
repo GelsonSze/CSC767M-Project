@@ -1,12 +1,13 @@
+#include <random>
 #include "Model.h"
 
 class Coral : public Model {
 public:
 	Coral() {
 		this->model_path = "assets/Coral/coral.obj";
-		this->textures = { "textures/Shrine/shrine_diff.png",
-						   "textures/Shrine/shrine_spec.png",
-						   "textures/Shrine/shrine_nmap.png" };
+		this->textures = { "textures/Coral/coral_diff_01.png",
+						   "textures/Coral/coral_spec.png",
+						   "textures/Coral/coral_nmap.png" };
 		this->model_mtl = { "assets/Coral/coral.mtl" };
 	};
 
@@ -29,5 +30,18 @@ public:
 		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
 		glUniform1i(u_texture, 0);
 
+	}
+
+	string getRandomCoralTexture() {
+		vector<string> textures_list = { "textures/Coral/coral_diff_01.png" ,
+						   "textures/Coral/coral_diff_02.png" ,
+						   //"textures/Coral/coral_diff_03.png",
+						   "textures/Coral/coral_diff_04.png" };
+
+		std::random_device randomizer;
+		std::mt19937 gen(randomizer());
+		std::uniform_int_distribution<> dis(0, 3);
+
+		return textures_list[dis(gen)];
 	}
 };

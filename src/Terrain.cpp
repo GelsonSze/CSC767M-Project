@@ -4,9 +4,9 @@ class Terrain : public Model {
 public:
 	Terrain() {
 		this->model_path = "assets/Terrain/terrain.obj";
-		this->textures = { "textures/Shrine/shrine_diff.png",
-						   "textures/Shrine/shrine_spec.png",
-						   "textures/Shrine/shrine_nmap.png" };
+		this->textures = { "textures/Terrain/terrain_diff.png",
+						   "textures/Terrain/terrain_spec.png",
+						   "textures/Terrain/terrain_nmap.png" };
 		this->model_mtl = { "assets/Terrain/terrain.mtl" };
 	};
 

@@ -1,6 +1,10 @@
 /*  Base code by Alun Evans 2016 LaSalle (aevanss@salleurl.edu) modified by: Conrado Ruiz, Ferran Ruiz 2024*/
 
-// student names: Alfonso Miguel Cruz, Gelson Sze
+/* CSC767M Final Project
+ * Names:
+ *	- Alfonso Miguel Cruz
+ *	- Gelson Sze
+ */
 
 //include some standard libraries
 #include <stdio.h>
@@ -98,7 +102,7 @@ Stalagmite stalagmite = Stalagmite();
 Terrain terrain = Terrain();
 Trident trident = Trident();
 Turtle turtle = Turtle();
-
+Seafloor seafloor = Seafloor();
 Skybox skybox = Skybox();
 
 //globals
@@ -185,82 +189,11 @@ void push_back_models() {
 
 	// SEAWEEDS
 	models.push_back(&seaweed);
+
+	// SEAFLOOR
+	models.push_back(&seafloor);
 }
 
-void loadTest() {
-	vector<tinyobj::shape_t> sphere = {};
-	bool ret = tinyobj::LoadObj(sphere, "assets/Test/sphere.obj");
-
-	gl_createAndBindAttribute(
-		&(sphere[0].mesh.positions[0]),
-		sphere[0].mesh.positions.size() * sizeof(float),
-		g_SimpleShader,
-		"a_vertex",
-		3
-	);
-
-	// extract uv coords buffer from the shape to create the VBO
-	gl_createAndBindAttribute(
-		&(sphere[0].mesh.texcoords[0]),
-		sphere[0].mesh.texcoords.size() * sizeof(GLfloat),
-		g_SimpleShader,
-		"a_uv",
-		2
-	);
-
-	// Add Index VBO
-	gl_createIndexBuffer(
-		&(sphere[0].mesh.indices[0]),
-		sphere[0].mesh.indices.size() * sizeof(unsigned int));
-
-	// Add Lighting VBO
-	gl_createAndBindAttribute(
-		&(sphere[0].mesh.normals[0]),
-		sphere[0].mesh.normals.size() * sizeof(float),
-		g_SimpleShader,
-		"a_normal",
-		3
-	);
-
-	// unbind everything
-	gl_unbindVAO();
-
-	// store number of triangles (use in draw())
-	g_NumTriangles_sphere = sphere[0].mesh.indices.size() / 3;
-
-	stbi_set_flip_vertically_on_load(true);
-
-	char sphere_path[] = "textures/Test/sphere.png";
-	int width, height, numChannels;
-	unsigned char* pixels_sphere;
-
-	// load texture objects
-	stbi_set_flip_vertically_on_load(true);
-
-	pixels_sphere = stbi_load(sphere_path, &width, &height, &numChannels, 0);
-
-	glGenTextures(1, &texture_id_sphere);
-
-	glBindTexture(GL_TEXTURE_2D, texture_id_sphere);
-
-	glTexParameteri(
-		GL_TEXTURE_2D,
-		GL_TEXTURE_MIN_FILTER,
-		GL_LINEAR
-	);
-
-	glTexImage2D(
-		GL_TEXTURE_2D,
-		0,
-		GL_RGBA,
-		width,
-		height,
-		0,
-		GL_RGBA,
-		GL_UNSIGNED_BYTE,
-		pixels_sphere
-	);
-}
 
 // ------------------------------------------------------------------------------------------
 // This function manually creates a square geometry (defined in the array vertices[])
@@ -278,10 +211,6 @@ void load()
 
 	push_back_models();	
 	skybox.load(g_SimpleShader_sky);
-
-	/** FOR TESTING PURPOSES ONLY!! **/
-	//loadTest();
-	/** FOR TESTING PURPOSES ONLY!! **/
 
 	//**********************
 	// CODE TO LOAD TO MEMORY
@@ -340,51 +269,7 @@ void load()
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	cout << "LOADING DONE!" << endl;
-}
-
-void drawTest() {
-	GLuint model_loc = glGetUniformLocation(g_SimpleShader, "u_model");
-	GLuint view_loc = glGetUniformLocation(g_SimpleShader, "u_view");
-	GLuint projection_loc = glGetUniformLocation(g_SimpleShader, "u_projection");
-
-	GLuint u_texture = glGetUniformLocation(g_SimpleShader, "u_texture");
-
-	GLuint light_loc = glGetUniformLocation(g_SimpleShader, "u_light_dir");
-	GLuint cam_pos_loc = glGetUniformLocation(g_SimpleShader, "u_cam_pos");
-	GLuint ambient_loc = glGetUniformLocation(g_SimpleShader, "u_ambient");
-	GLuint diffuse_loc = glGetUniformLocation(g_SimpleShader, "u_diffuse");
-	GLuint specular_loc = glGetUniformLocation(g_SimpleShader, "u_specular");
-	GLuint shininess_loc = glGetUniformLocation(g_SimpleShader, "u_shininess");
-
-	mat4 model_matrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, -2.0f)) *
-						scale(mat4(1.0f), vec3(0.3, 0.3, 0.3));
-
-	mat4 view_matrix = glm::lookAt(cameraPos, cameraCenter, cameraUp);
-
-	glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model_matrix));
-	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-
-	glUniform3f(light_loc, 10.0f, 10.0f, 10.0f);
-	glUniform3f(cam_pos_loc, cameraPos.x, cameraPos.y, cameraPos.z);
-	glUniform3f(ambient_loc, 0.1f, 0.1f, 0.1f);
-	glUniform3f(diffuse_loc, 1.0f, 1.0f, 1.0f);
-	glUniform3f(specular_loc, 1.0f, 1.0f, 1.0f);
-	glUniform1f(shininess_loc, 40.0f);
-
-	// bind the sampler to the texture unit 0
-	glUniform1i(u_texture, 0);
-
-	// activate texture unit i and bin the texture object
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture_id_sphere);
-
-	//bind the geometry
-	gl_bindVAO(g_Vao_sphere);
-
-	// Draw to screen
-	glDrawElements(GL_TRIANGLES, 3 * g_NumTriangles_sphere, GL_UNSIGNED_INT, 0);
+	std::cout << "LOADING DONE!" << endl;
 }
 
 // ------------------------------------------------------------------------------------------
@@ -725,6 +610,12 @@ void draw()
 		0.0f, 0.0f, 0.0f,
 		1.5f, 1.5f, 1.5f);
 	clam.draw(g_SimpleShader, view_matrix);
+
+	// SEAFLOOR
+	seafloor.set_modelTransform(0.0f, -0.6f, 0.0f,
+		270.0f, 0.0f, 0.0f,
+		3.25f, 3.25f, 3.25f);
+	seafloor.draw(g_SimpleShader, view_matrix);
 }
 
 // ------------------------------------------------------------------------------------------
@@ -747,8 +638,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 	if (key == GLFW_KEY_A && (action == GLFW_PRESS | GLFW_REPEAT)) {
-		cout << "Press: A" << endl;
-
 		if (all(equal(cameraFront, cameraUp))) {
 			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
 		}
@@ -759,15 +648,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 	if (key == GLFW_KEY_S && (action == GLFW_PRESS | GLFW_REPEAT)) {
-		cout << "Press: S" << endl;
 
 		cameraPos -= (cameraFront / 100.0f);
 		updateCameraVectors(-1.0f);
 	}
 
 	if (key == GLFW_KEY_D && (action == GLFW_PRESS | GLFW_REPEAT)) {
-		cout << "Press: D" << endl;
-
 		if (all(equal(cameraFront, cameraUp))) {
 			cameraSide = vec3(1e-5f, 1e-5f, 1e-5f);
 		}
@@ -784,12 +670,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		isDrag = true;
-		cout << "Left mouse down at " << mouse_x << ", " << mouse_y << endl;
+		//cout << "Left mouse down at " << mouse_x << ", " << mouse_y << endl;
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 		isDrag = false;
-		cout << "Left mouse up at " << mouse_x << ", " << mouse_y << endl;
+		//cout << "Left mouse up at " << mouse_x << ", " << mouse_y << endl;
 	}
 }
 
