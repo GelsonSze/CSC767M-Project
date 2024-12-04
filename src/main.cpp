@@ -85,35 +85,20 @@ mat4 projection_matrix = perspective(
 
 //objects
 Clam clam = Clam();
-
-vector<Coral> corals_nw = { Coral(),
-						   Coral(), Coral(), Coral(),
-						   Coral(), Coral(), Coral(), Coral(), Coral() };
-vector<Coral> corals_ne = { Coral(),
-						   Coral(), Coral(), Coral(),
-						   Coral(), Coral(), Coral(), Coral(), Coral() };
-vector<Coral> corals_sw = { Coral(),
-						   Coral(), Coral(), Coral(),
-						   Coral(), Coral(), Coral(), Coral(), Coral() };
-
-
-vector<Terrain> terrains = { Terrain(), Terrain(), Terrain() };
-vector<Shrine> shrines = { Shrine(), Shrine(), Shrine() };
-vector<Seaweed> seaweeds = { Seaweed(), Seaweed(), Seaweed(), Seaweed(),
-							 Seaweed(), Seaweed(), Seaweed() };
+Coral coral = Coral();
 Fish fish1 = Fish();
 Fish fish2 = Fish();
 Fish fish3 = Fish();
 Jellyfish jellyfish = Jellyfish();
-Turtle turtle = Turtle();
-
 Pearl pearl = Pearl();
 Pillar pillar = Pillar();
-
+Seaweed seaweed = Seaweed();
+Shrine shrine = Shrine();
 Stalagmite stalagmite = Stalagmite();
-Trident trident = Trident();
-
 Terrain terrain = Terrain();
+Trident trident = Trident();
+Turtle turtle = Turtle();
+
 Skybox skybox = Skybox();
 
 //globals
@@ -190,32 +175,16 @@ void push_back_models() {
 	models.push_back(&trident);
 
 	// CORALS
-	for (auto &c : corals_nw) {
-		models.push_back(&c);
-	}
-
-	for (auto& c : corals_ne) {
-		models.push_back(&c);
-	}
-
-	for (auto& c : corals_sw) {
-		models.push_back(&c);
-	}
+	models.push_back(&coral);
 
 	// TERRAIN
-	for (auto &t : terrains) {
-		models.push_back(&t);
-	}
+	models.push_back(&terrain);
 
 	// SHRINES
-	for (auto& s : shrines) {
-		models.push_back(&s);
-	}
+	models.push_back(&shrine);
 
 	// SEAWEEDS
-	for (auto& w : seaweeds) {
-		models.push_back(&w);
-	}
+	models.push_back(&seaweed);
 }
 
 void loadTest() {
@@ -479,8 +448,8 @@ void draw()
 	GLuint light_matrix_loc = glGetUniformLocation(g_SimpleShader, "lightSpaceMatrix");
 	glUniformMatrix4fv(light_matrix_loc, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 
-	GLuint diffuseTextureloc = glGetUniformLocation(g_SimpleShader, "u_texture_diffuse");
-	glUniform1i(diffuseTextureloc, 0);
+	//GLuint diffuseTextureloc = glGetUniformLocation(g_SimpleShader, "u_texture_diffuse");
+	//glUniform1i(diffuseTextureloc, 0);
 
 	GLuint shadowMap_loc = glGetUniformLocation(g_SimpleShader, "shadowMap");
 	glUniform1i(shadowMap_loc, 1);
@@ -495,7 +464,7 @@ void draw()
 		glfwSetTime(0.0);
 	turtle.draw(g_SimpleShader, view_matrix);
 
-	// MOVEMENT 02 - Jellyfish
+	//// MOVEMENT 02 - Jellyfish
 	jellyfish.set_modelTransform(flowerX(glfwGetTime()),
 								 flowerY(glfwGetTime()),
 								 flowerZ(glfwGetTime()),
@@ -503,7 +472,7 @@ void draw()
 								 0.75f, 0.75f, 0.75f);
 	jellyfish.draw(g_SimpleShader, view_matrix);
 
-	// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
+	//// MOVEMENT 03 - 05 - Fish 1, Fish 2, Fish 3
 	fish1.set_modelTransform(fishXY(glfwGetTime(), 2),
 							 fishXY(glfwGetTime(), 1),
 							 fishZ(glfwGetTime()),
@@ -529,7 +498,7 @@ void draw()
 	// NW
 	float cx = -1.4f, cy = 0.7f, cz = -1.4f;
 	int i = 0;
-	for (i = 0; i < corals_nw.size(); i++) {
+	for (i = 0; i < 9; i++) {
 		switch (i) {
 			case 1:
 				cz = -1.0f;
@@ -560,10 +529,10 @@ void draw()
 				break;
 		}
 
-		corals_nw[i].set_modelTransform(cx, cy, cz,
+		coral.set_modelTransform(cx, cy, cz,
 										0.0f, 0.0f, 0.0f,
 										0.05f, 0.05f, 0.05f);
-		corals_nw[i].draw(g_SimpleShader, view_matrix);
+		coral.draw(g_SimpleShader, view_matrix);
 	}
 
 
@@ -571,7 +540,7 @@ void draw()
 	cx = 1.4f;
 	cy = 0.7f;
 	cz = -1.4f;
-	for (i = 0; i < corals_ne.size(); i++) {
+	for (i = 0; i < 9; i++) {
 		switch (i) {
 		case 1:
 			cz = -1.0f;
@@ -602,17 +571,17 @@ void draw()
 			break;
 		}
 
-		corals_nw[i].set_modelTransform(cx, cy, cz,
+		coral.set_modelTransform(cx, cy, cz,
 			0.0f, 0.0f, 0.0f,
 			0.05f, 0.05f, 0.05f);
-		corals_nw[i].draw(g_SimpleShader, view_matrix);
+		coral.draw(g_SimpleShader, view_matrix);
 	}
 
 	//SW
 	cx = -1.4f;
 	cy = 0.7f;
 	cz = 1.4f;
-	for (i = 0; i < corals_ne.size(); i++) {
+	for (i = 0; i < 9; i++) {
 		switch (i) {
 		case 1:
 			cz = 1.0f;
@@ -643,15 +612,14 @@ void draw()
 			break;
 		}
 
-		corals_nw[i].set_modelTransform(cx, cy, cz,
+		coral.set_modelTransform(cx, cy, cz,
 			0.0f, 0.0f, 0.0f,
 			0.05f, 0.05f, 0.05f);
-		corals_nw[i].draw(g_SimpleShader, view_matrix);
+		coral.draw(g_SimpleShader, view_matrix);
 	}
-
 	// TERRAIN
 	float tx = -1.0f, tz = -1.0f, angle = 90.0f;
-	for (i = 0; i < terrains.size(); i++) {
+	for (i = 0; i < 3; i++) {
 		switch (i) {
 			case 1:
 				tx *= -1.0f;
@@ -664,17 +632,17 @@ void draw()
 				break;
 		}
 
-		terrains[i].set_modelTransform(tx, 0.0f, tz,
+		terrain.set_modelTransform(tx, 0.0f, tz,
 									   0.0f, angle, 0.0f,
 									   0.075f, 0.075f, 0.075f);
-		terrains[i].draw(g_SimpleShader, view_matrix);
+		terrain.draw(g_SimpleShader, view_matrix);
 	}
 
 	// SHRINES
 	float sx = 0.0f, sz = -1.25f;
 	// float angle = 90.0f; int i;
 	angle = 90.0f;
-	for (i = 0; i < shrines.size(); i++) {
+	for (i = 0; i < 3; i++) {
 		switch (i) {
 		case 1:
 			sx = -1.25f;
@@ -688,14 +656,14 @@ void draw()
 			break;
 		}
 
-		shrines[i].set_modelTransform(sx, 0.0f, sz,
+		shrine.set_modelTransform(sx, 0.0f, sz,
 			0.0f, angle, 0.0f,
 			0.05f, 0.05f, 0.05f);
-		shrines[i].draw(g_SimpleShader, view_matrix);
+		shrine.draw(g_SimpleShader, view_matrix);
 	}
 
 	float wx = 0.75f, wz = 1.00f;
-	for (i = 0; i < seaweeds.size(); i++) {
+	for (i = 0; i < 7; i++) {
 		switch (i) {
 		case 1:
 			wz = 1.25f;
@@ -718,11 +686,11 @@ void draw()
 			break;
 		}
 
-		seaweeds[i].set_modelTransform(
+		seaweed.set_modelTransform(
 			wx, -0.25f, wz,
 			0.0f, 90.0f, 0.0f,
 			0.05f, 0.05f, 0.05f);
-		seaweeds[i].draw(g_SimpleShader, view_matrix);
+		seaweed.draw(g_SimpleShader, view_matrix);
 	}
 	
 	// TRIDENT

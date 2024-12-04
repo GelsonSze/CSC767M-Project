@@ -11,8 +11,8 @@ public:
 	};
 
 	void bindTextures(GLuint g_Shader) override {
-		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture_diffuse");
-		glUniform1i(u_texture, 0);
+		GLuint u_texture_diffuse = glGetUniformLocation(g_Shader, "u_texture_diffuse");
+		glUniform1i(u_texture_diffuse, 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture_ids[0]); //index of id is the order of textures declared
 
@@ -25,5 +25,8 @@ public:
 		glUniform1i(u_texture_normal, 2);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture_ids[2]);
+
+		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
+		glUniform1i(u_texture, 0);
 	}
 };

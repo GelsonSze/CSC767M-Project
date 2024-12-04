@@ -134,6 +134,9 @@ public:
 				GL_UNSIGNED_BYTE,		// type of data
 				pixels);
 			cout << "AFTER GLTEXIMAGE2D" << "\n";
+			for (auto tex : this->texture_ids) {
+				cout << "ID: " << tex << "\n";
+			}
 		}
 	};
 
@@ -146,8 +149,9 @@ public:
 			cout << id << " ";
 		}
 		cout << "\n";*/
-
+		activateTextures(g_Shader);
 		bindTextures(g_Shader);
+		deactivateTextures(g_Shader);
 
 		// light position
 		GLuint light_loc = glGetUniformLocation(g_Shader, "u_light_dir");
@@ -205,11 +209,11 @@ public:
 		this->ambience = vec3(x, y, z);
 	};
 
-	virtual void set_diffuse(float x = 1.0f, float y = 1.0f, float z = 1.0f) {
+	virtual void set_diffuse(float x = 0.8f, float y = 0.8f, float z = 0.8f) {
 		this->diffuse = vec3(x, y, z);
 	};
 
-	virtual void set_specular(float x = 1.0f, float y = 1.0f, float z = 1.0f) {
+	virtual void set_specular(float x = 0.1f, float y = 0.1f, float z = 0.1f) {
 		this->specular = vec3(x, y, z);
 	};
 
@@ -218,4 +222,18 @@ public:
 	};
 
 	virtual void bindTextures(GLuint g_Shader) {};
+
+	virtual void activateTextures(GLuint g_Shader) {
+		glEnable(GL_TEXTURE0);
+		glEnable(GL_TEXTURE1);
+		glEnable(GL_TEXTURE2);
+		glEnable(GL_TEXTURE3);
+	}
+
+	virtual void deactivateTextures(GLuint g_Shader) {
+		glDisable(GL_TEXTURE0);
+		glDisable(GL_TEXTURE1);
+		glDisable(GL_TEXTURE2);
+		glDisable(GL_TEXTURE3);
+	}
 };

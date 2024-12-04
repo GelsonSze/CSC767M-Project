@@ -24,5 +24,8 @@ public:
 		glUniform1i(u_texture_normal, 2);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture_ids[2]);
+
+		GLuint u_texture = glGetUniformLocation(g_Shader, "u_texture");
+		glUniform1i(u_texture, 0);
 	}
 };
